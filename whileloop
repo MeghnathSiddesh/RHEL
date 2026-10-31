@@ -1,0 +1,111 @@
+while loop repeatedly executes a block of commands as long as a specified condition remains true. It is ideal for situations where you don't know exactly how many times you need to loop in advance, such as reading a file line-by-line or waiting for a specific system state.
+
+The basic structure of a while loop looks like this:
+
+while [ condition ]
+do
+    # Commands to run while the condition is true
+done
+
+Tip: Always ensure the loop includes a way to update the variables used in the condition. If the condition never becomes false, you will create an infinite loop that runs forever until you manually kill it (using Ctrl + C).
+
+This loop counts from 1 up to 5. We initialize a variable, check it in the condition, and increment it inside the loop.
+
+#!/bin/bash
+counter=1
+
+while [ $counter -le 5 ]
+do
+    echo "Count is: $counter"
+    ((counter++))  # Increments the counter by 1
+done
+
+
+2. Reading a File Line-by-Line
+
+One of the most powerful uses of a while loop in scripting is processing text files line-by-line using the read command.
+
+#!/bin/bash
+file="users.txt"
+
+while IFS= read -r line
+do
+    echo "Processing user: $line"
+done < "$file"
+
+• IFS= prevents leading/trailing whitespace from being trimmed.
+• -r prevents backslash escapes from being misinterpreted.
+• < "$file" feeds the file into the loop.
+
+
+3. Creating an Infinite Loop (with a break)
+
+Sometimes you want a loop to run continuously until a specific internal event occurs. You can pass true as the condition and exit using the break command.
+
+#!/bin/bash
+while true
+do
+    echo "System monitoring active..."
+    sleep 2 # Wait 2 seconds
+    
+    # Check if a specific file exists to stop the loop
+    if [ -f "/tmp/stop.txt" ]; then
+        echo "Stop signal detected. Exiting."
+        break
+    fi
+done
+
+Here is a practical, production-ready Bash script that uses a while loop to read and process a CSV-style data file line-by-line.
+This example doesn't just print the lines—it splits them into variables, skips empty lines or comments, and performs logic on the data, which is how while loops are typically used in real-world system administration.
+
+The Scenario
+
+Imagine you have a text file named servers.txt that lists server names, their IP addresses, and their roles.
+servers.txt (The Input File):
+
+# Server configurations (Name,IP,Role)
+web-prod01,192.168.1.10,Web Server
+db-prod01,192.168.1.20,Database
+app-stage01,192.168.2.15,Application
+
+This script reads the file, ignores the comment line starting with #, and extracts the individual fields from each line.
+
+#!/bin/bash
+
+# Define the file to read
+FILE="servers.txt"
+
+# Check if the file actually exists before running the loop
+if [ ! -f "$FILE" ]; then
+    echo "Error: $FILE not found."
+    exit 1
+fi
+
+echo "Starting server inventory processing..."
+echo "--------------------------------------"
+
+# The while loop reads the file line-by-line
+# 'IFS=,' splits each line by the comma into separate variables
+while IFS=',' read -r server_name ip_address role
+do
+    # 1. Skip empty lines
+    [ -z "$server_name" ] && continue
+
+    # 2. Skip comment lines that start with '#'
+    [[ "$server_name" =~ ^# ]] && continue
+
+    # 3. Process the data
+    echo "Configuring: $server_name"
+    echo "  -> IP Address : $ip_address"
+    echo "  -> System Role: $role"
+    echo "--------------------------------------"
+
+done < "$FILE" # This feeds the file directly into the while loop
+
+echo "Processing complete!"
+
+Why this is the best practice for reading files:
+
+• IFS=',' (Internal Field Separator): By setting IFS directly on the while line, we safely split the comma-separated text into three distinct variables ($server_name, $ip_address, and $role) on the fly.
+• read -r: The -r flag prevents backslashes (\) inside your text file from acting as escape characters, ensuring your data reads exactly as it looks.
+• done < "$FILE": Feeding the file at the end of the loop is much faster and more memory-efficient than using cat servers.txt | while read ..., because it doesn't create an extra system process (avoiding what developers call the "useless use of cat").
