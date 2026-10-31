@@ -1,0 +1,198 @@
+# a shell script file(.sh) must have execute permissions to run it as ordinary command
+# to check the file permissions use -> ls - ltr scriptname.sh
+# use chmod to modify permissions
+# run script using 
+./scriptname or sh scriptname
+
+# shell will execute this script line by line, each line as a command
+
+------------
+shell script file must start with #!
+/usr/bin/bash -> location of bash file
+
+line should start with
+#! /usr/bin/bash
+
+
+# quote special characters
+# usually certain characters will have special meaning to the bash shell
+# to skip that special meaning in the script and use them as a literal and not as special character; 
+# use these to avoid the effect of sepcial character: backslash(\) or '' or " "
+
+ex: # has special meaning
+echo #meaning ;will not print anything
+echo \#meghanath
+echo '#meghanath'
+echo "#meghanath"
+
+will print #meghanath
+
+echo command
+# it displays text by passing text as an argument to the command
+# it is used to display output or error mesg/debug mesg text to the screen or a file
+
+syntax : echo [option] [string]
+echo "How are you"
+echo -e "howe \bare \byou?"
+echo -e "hello, \nhow are you?"
+echo -e "hello, \thow \tare \tyou?"
+
+-e enables the specail characters effect in the string
+# here \b removes the spaces between text
+# \n creates new line for the string next to it
+# \t creates horizontal tab spaces
+
+
+# variable decalaration
+# In Linux, a variable is a named storage location that holds a value, such as text, numbers, file paths, or command output. Variables are heavily used in shell scripting and command-line work.
+
+
+var1=Meghanath
+A=100
+
+# Note: No spaces around =.
+# to dynamically access a variable value use $var_name
+
+echo $a
+
+echo my name is $var1
+my name is Meghanath
+
+echo "my name is $var1"
+my name is Meghanath
+# Variables and command substitutions are expanded.
+
+echo 'my name is $var1'
+my name is $var1
+# Everything inside single quotes is treated literally.The variable is not expanded.
+
+# Types of Variables
+# 1. Local Variables
+# Available only in the current shell session.
+city=Mumbai
+echo $city
+
+# 2. Environment Variables
+# Available to child processes and applications.
+# View all environment variables:
+env
+
+# examples:
+echo $HOME
+echo $USER
+echo $PATH
+echo $SHELL
+echo $HOSTNAME
+
+------------------------
+# you can redirect the output of a command to a exisiting or new file
+echo $HOME > home.txt
+sh script2.sh > script
+# the > will redirect only the useful output, it will not redirect the errors to the file
+# it will delete the old output and add the new output
+
+# append operator
+sh script2.sh >> script
+# this will only store the output and not the errors, but everytime you execute this command(>>) this will append the output to the script file and it will not delete old output
+
+
+# to redirect output along with error use: 2>
+sh script2.sh 2> script
+# this will store the errors as well
+
+--------------------------
+
+loops in shell scripting
+
+# use loops to iterate commands
+# for repitative tasks
+# example : you need to fire same command on 10 servers, create a sh file and have hostnames aof 10 servers and use loop to execute the same command
+
+for loop is used for task iterations
+in bash, for loop uses following syntax
+
+for VARIABLE in LIST;
+do
+COMMAND VARIABLE
+done
+
+ex: for i in 1 2 3 4 5
+do
+ech $i
+done
+
+for i in {1..10}
+do
+echo "======"
+eho $i
+echo "======"
+done
+
+
+# you want to give a command as input to some other command use : $(command)
+
+for i in $(cat file.txt)
+> do
+> echo $i
+> done
+
+cat file.txt will read file line by line
+
+A for loop is used to execute a block of commands repeatedly for a list of values.
+
+in servers.txt it will have servers ip
+
+for server in $(cat servers.txt)
+do
+    echo "Connecting to $server"
+    ssh ec2-user@$server hostname
+done
+
+A for loop in shell scripting is used to iterate over a list of values, files, or numbers and execute a set of commands for each item. It follows the syntax:
+
+for variable in list
+do
+    commands
+done
+
+Common use cases include processing files, automating server tasks, and running commands against multiple AWS resources.
+
+---------------------------------------------------------------------------------
+
+bash script exit codes :
+exit code is writted by bash for every command executed in terminal.this code can be used to display error messages when there is any problem while running the script
+
+when a command executed successfully bash returns 0 as exit code, for any error while executing the the command, non zero value 1 to 255 is returned based on error type
+
+an exit status (or exit code) is a numeric value between 0 and 255 that a process returns to its parent shell upon completion. It serves as a direct way for a command to report whether it executed successfully or encountered an error
+
+You can check the exit status of the most recently executed command by printing the special shell variable $?:
+echo $?
+for successful commands it will return 0
+
+
+Exit Code	Meaning	   Description
+
+
+0	Success -> The command completed perfectly without any errors.
+1	General error -> Catch-all for miscellaneous errors, such as "permission denied" or dividing by zero.
+2	Misuse of shell built-ins -> Missing arguments or syntax errors in a built-in shell command.
+126	Command invoked cannot execute -> The command was found, but you lack the permissions required to run it.
+127	Command not found -> You typed a command that does not exist or isn't in your PATH.
+128	Invalid argument to exit -> The exit command was given a value outside the valid 0–255 integer range.
+
+128 + N	Fatal signal error -> If a process is forced to terminate by a system signal N, its exit code becomes 128 + N. (e.g., terminating a script with Ctrl+C sends signal 2, resulting in exit code 130).
+
+
+
+
+
+you can also use exit code as part of your script
+
+after script interprets and processes all its content, the script process exits and passes the control back to parent process that called it
+
+you can use exit command to immediately leave the script 
+
+you can use the exit command with an optional integer argument b/w 0 to 255, which represents an exit code
+
+ex: exit 0

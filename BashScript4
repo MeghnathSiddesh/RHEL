@@ -1,0 +1,215 @@
+Grep command
+
+global regular expression print
+
+grep is useful command to search for matching pattern in a file
+
+grep [options] "pattern" [file]
+
+Pattern: The string or regular expression (regex) you are hunting for.
+File: The target text file. If omitted, grep reads from standard input (via pipes |).
+
+In shell scripts, grep behaves like a boolean check because of its Exit Status Codes:
+• 0: Success (The pattern was found).
+• 1: Failure (The pattern was not found).
+• 2: Error (e.g., file not found or syntax error).
+
+
+-i	Case-insensitive	Ensures the script doesn't break if a log contains "Error", "error", or "ERROR".
+#!/bin/bash
+LOG_FILE="/var/log/app.log"
+
+grep -i "error" "$LOG_FILE"
+# Error3
+# error5
+
+
+if grep -i "Num" script.sh;
+> then
+> echo "number found"
+> fi
+
+output:
+read -p "Enter a number: " num
+if [ "$num" -ge 0 ];
+then echo "it is positive Number";
+elif [ "$num" -lt 0 ];
+then echo "it is negative Number";
+number found
+
+# here grep will throw the output to terminal
+
+# Catches "ERROR", "error", "Error", or "ErRoR"
+if grep -i "error" "$LOG_FILE" > /dev/null; then
+    echo "Alert: An error was detected in the logs!"
+fi
+
+# here grep will redirect the output to /dev/null not to terminal
+
+
+# -q	Quiet mode	Suppresses output entirely. Used solely to check if a pattern exists via exit status.
+# Use Case: Best used inside conditional if statements when you only care if something exists, but you don't want the text cluttering the terminal or log files.
+
+#!/bin/bash
+# Check if the user "admin" exists in the system passwd file
+if grep -q "^admin:" /etc/passwd; then
+    echo "Access granted: Admin user found."
+else
+    echo "Access denied: Account does not exist."
+fi
+
+# here grep will not throw the output to terminal in quiet mode, it will just return exit status 0 or 1
+
+
+# -c	Count	Outputs just a number representing the matched lines; great for counting errors.
+# it will output the no of lines which this pattern is having in the file or output
+
+#!/bin/bash
+# Count how many failed login attempts occurred
+FAILED_COUNT=$(grep -c "Failed password" /var/log/auth.log)
+if [ "$FAILED_COUNT" -gt 10 ]; then
+    echo "Warning: High number of failed login attempts ($FAILED_COUNT)!"
+fi
+
+
+# -l	List filenames	Outputs only the names of files containing the match instead of the lines themselves.
+
+# When you use grep normally across multiple files, it prints every single line that matches your pattern, prefixing it with the filename. However, when you add -l, grep stops reading a file the absolute moment it finds a single match, prints only the filename, and immediately skips to the next file.
+
+# it prints only file name that pattern is having
+# it is useful when searching across multiple files or directories
+
+#!/bin/bash
+# Find all script files that contain the word "TODO"
+for file in $(grep -l "TODO" *.sh); do
+    echo "Reminder: Please review tasks in $file"
+done
+
+#!/bin/bash
+
+# Find all .txt files containing the word "malware"
+# -l ensures we only get a list of filenames, not the matching text
+for infected_file in $(grep -l "malware" /uploads/*.txt); do
+    echo "Quarantining: $infected_file"
+    mv "$infected_file" /quarantine/
+done
+
+# Open all bash scripts that contain the word "TODO"
+nano $(grep -l "TODO" *.sh)
+
+
+# Combining with xargs (The Professional Way)
+# Using a for loop on command outputs can sometimes break if filenames contain spaces. Combining grep -l with xargs is a safer, faster industry standard.
+# Find all configuration files containing "Port 22" and change it to "Port 2222" using sed
+grep -l "Port 22" /etc/ssh/sshd_config.d/* | xargs sed -i 's/Port 22/Port 2222/g'
+
+# for this read xargs and sed 
+---------------------
+
+# grep can search across multiple files and folders
+
+# To search inside folders (directories), you must use the -r (recursive) or -R flags. This tells grep to dive into the folder, look through every file inside it, and move down into any subfolders automatically.
+
+# To search an entire folder and all of its subdirectories, use the -r flag.
+
+# Syntax
+grep -r "pattern" /path/to/folder
+
+# Example: Search for the word "database" in all files inside /var/log/
+grep -r "database" /var/log/
+
+# Output format: grep will print the paths to the files along with the exact lines where it found the match 
+
+(e.g., /var/log/app.log: connection to database failed).
+
+
+# Searching Multiple Specific Files
+# If you don't want to search a whole folder, you can list individual files separated by spaces, or use wildcards (*).
+
+# Example A: Search in three specific files
+grep "error" file1.log file2.log file3.log
+
+# Example B: Search in all files ending with .conf in the current folder
+grep "Port" *.conf
+
+# Combining Flags for targeted Folder Searches
+# Grouping Folder Searches with -l (List Files Only)
+# combining -r with -l yields a clean list of filenames across your whole directory structure.
+
+# Find the names of all files in a project folder that contain the word "TODO"
+grep -rl "TODO" /home/user/project/
+
+# If you are searching a massive directory but only want to look inside specific file formats, use --include or --exclude.
+
+# Search for "API_KEY" only inside Python (.py) files inside a directory
+grep -r --include="*.py" "API_KEY" /home/user/code/
+
+# Search a folder but skip all heavy log files
+grep -r --exclude="*.log" "critical_error" /var/www/
+
+
+
+--------------------------------------------------------------------------
+
+# In Linux scripting and terminal commands, conditional logic (AND, OR, NOT) is used to link multiple commands, validate variables, or filter text data.
+
+# Because Linux relies on both exit status codes (where 0 means Success/True and anything else means Failure/False) and text processing, these logic concepts show up in two main areas: Command Chaining (the shell level) and grep Text Filtering (the data level).
+
+
+1. The Shell Level: Chaining Commands
+
+# You can control script flow by connecting multiple terminal commands based on whether the previous ones succeeded or failed.
+
+
+The AND Operator (&&)
+
+# The second command executes only if the first command succeeds (returns an exit status of 0).
+# • Analogy: "If step A goes well, move to step B."
+mkdir /var/log/my_app && cd /var/log/my_app
+
+
+The OR Operator (||)
+
+# The second command executes only if the first command fails (returns a non-zero exit status).
+# Analogy: "Try step A. If it breaks, do step B as a backup."
+grep -q "error" system.log || echo "System is clean!"
+
+The NOT Operator (!)
+# Reverses the outcome of a condition or command. It turns a success into a failure and vice versa.
+# Run the code inside ONLY if the file does NOT exist
+if [ ! -f /etc/config.json ]; then
+    echo "Configuration file missing!"
+fi
+
+
+2. The Data Level: grep Text Filtering
+
+# When parsing logs or configurations, you often need to match complex string logic. To achieve this, you use Extended Regular Expressions (grep -E)
+
+grep AND Logic
+
+#  standard grep processes text line-by-line, it doesn’t have a built-in "AND" operator keyword. However, you can easily perform an AND operation—finding lines that contain both Pattern A and Pattern B
+
+# The first grep filters out lines containing the first keyword, and the second grep searches only within those filtered lines for the second keyword.
+
+# Syntax
+grep "PatternA" filename | grep "PatternB"
+
+# Practical Example: Find logs where "User1" successfully "Logged-in"
+grep "User1" /var/log/auth.log | grep "Logged-in"
+
+# • Why it’s great: You can chain as many as you want (grep A | grep B | grep C).
+
+
+grep OR Logic
+
+# To find lines that contain either one word or another, use grep -E (Extended Regex) combined with the pipe | character.
+
+# Example: Find lines containing "CRITICAL" or "FATAL":
+grep -E "CRITICAL|FATAL" /var/log/syslog
+
+
+grep NOT Logic
+
+# To exclude specific terms, use the -v (invert match) flag we discussed earlier.
+grep -v "DEBUG" /var/log/nginx/access.log

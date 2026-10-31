@@ -1,0 +1,74 @@
+test logic for strings and directories, and to compare values
+
+The test command in Linux is used to check file types and compare values. It is a shell built-in that evaluates a conditional expression
+
+returns an exit status of 0 if the expression is true, or 1 if it is false
+
+The test command can be written in two identical ways:
+1. The literal word: test expression
+2. The bracket syntax: [ expression ] (Note: The closing bracket ] must have spaces around it because it acts as an argument).
+
+test -f /etc/passwd
+[ -f /etc/passwd ]
+
+check: echo $?    ;for their exit codes
+
+both are same
+
+Common Use Cases & Examples
+
+1. File and Directory Checking
+You can use test to see if files exist, if they are directories, or if you have permissions to read/write them.
+
+-e	File exists	[ -e config.json ] (True if the file exists)
+-f	Is a regular file	[ -f script.sh ] (True if it's a file, not a directory)
+-d	Is a directory	[ -d /var/log ] (True if the path is a folder)
+
+ex: if [ -f "deploy.sh" ]; then
+    echo "Deployment script found!"
+fi
+
+
+
+2. String Comparisons
+
+= or ==	Strings are equal	[ "$USER" = "root" ]
+!=	Strings are not equal	[ "$CHOICE" != "yes" ]
+-z	String is empty (zero length)	[ -z "$PASSWORD" ]
+-n	String is not empty	[ -n "$TOKEN" ]
+
+ex: ABC=''; [ -z "$ABC" ]; echo $?
+0
+ABC=''; [ -n "$ABC" ]; echo $?
+0  becuase -n checks non empty string
+
+3. Integer Comparisons
+Unlike regular programming languages that use < or >, the classic test command uses alphanumeric flags for numbers to avoid confusing the shell with file redirection symbols.
+
+
+-eq	Equal to	[ $AGE -eq 21 ]
+-ne	Not equal to	[ $COUNT -ne 0 ]
+-lt	Less than	[ $SCORE -lt 50 ]
+-le	Less than or equal to	[ $PRICE -le 10 ]
+-gt	Greater than	[ $ATTEMPTS -gt 3 ]
+-ge	Greater than or equal to	[ $SPACE -ge 90 ]
+
+
+Combining Expressions
+
+You can combine multiple conditions inside a single test command:
+• -a (AND): [ $AGE -gt 18 -a $AGE -lt 30 ] (True if age is between 18 and 30).
+• -o (OR): [ "$USER" = "root" -o "$USER" = "admin" ] (True if user is root or admin).
+• ! (NOT): [ ! -d "backup" ] (True if the "backup" directory does not exist).
+
+
+----------------------------------------------------------------
+
+you can run multiple commands in single line as seperate commands using ; 
+
+echo "Hello"; echo "Hi"
+
+[ 2 -gt 3]; echo $?
+1
+
+

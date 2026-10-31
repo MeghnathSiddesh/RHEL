@@ -1,0 +1,144 @@
+Conditional structures
+
+conditionals in bash can used in bash using if statement, if-else statement, elif statement with the following syntax
+
+if <condition>;
+then <statement>
+fi
+
+you can further expand if or then construct so that it takes different sets of actions depending on whether a condition is met.
+
+if <condition>;
+then <statment>
+else <statement>
+fi
+
+elif:
+
+if <condition>;
+then <statement>
+elif <condition>;
+then <statement>
+else <statement>
+fi
+
+examples:
+
+ if [ 10 -ge 9 ]; then echo "it is correct"; fi
+
+ if [ 10 -ge 11 ]; then echo "it is correct"; else echo "it is wrong"; fi
+
+ if [ -f /etc/resolv.conf ]; then echo "got file"; else echo "didnt got"; fi
+
+ if [ -f /etc/resolv.conf ]; then echo "got file"; elif [ 11 -ge 7 ]; then echo "11>5"; else echo "none of them are true"; fi
+
+ if-else statements rely entirely on the exit status of the command being evaluated.
+If the command inside the statement returns an exit status of 0 (Success/True), the then block executes. If it returns any non-zero status (Failure/False), the else block executes.
+
+if [ condition ]; then
+    # Executes if exit status is 0 (True)
+    echo "Condition met!"
+else
+    # Executes if exit status is non-zero (False)
+    echo "Condition failed!"
+fi
+
+Note: The semicolon ; before then is required if they are on the same line. If you put then on its own line, you can omit the semicolon.
+
+You can place an if statement inside another if, elif, or else block to create deeper, multi-layered conditional logic.
+
+if [ condition1 ]; then
+    echo "First condition is met."
+
+    # Nested IF statement
+    if [ condition2 ]; then
+        echo "Both first and second conditions are met."
+    fi # Closes the inner loop
+
+fi # Closes the outer loop
+
+TARGET_DIR=chrony
+if [[ -d "$TARGET_DIR" ]]; then if [[ -w "$TARGET_DIR" ]]; then echo "target directory exists, it is writable"; else echo "target directory exists, it is now writable"; fi; else echo "target directory does not exists" fi
+
+#!/bin/bash
+
+TARGET_DIR="/var/log/backup"
+
+# Outer condition: Check if the folder exists
+if [[ -d "$TARGET_DIR" ]]; then
+    echo "Directory exists. Verifying permissions..."
+
+    # Inner (Nested) condition: Check if the folder is writable
+    if [[ -w "$TARGET_DIR" ]]; then
+        echo "Success: Directory is writable. Running backup now."
+        # Backup commands go here...
+    else
+        echo "Error: Directory exists, but you do not have write permissions."
+    fi
+
+else
+    echo "Error: Target directory $TARGET_DIR does not exist."
+fi
+
+
+# target directory exists, it is writable
+
+script:
+#!/bin/bash
+
+if [ -f /etc/resolv.conf ]; then
+    if [ -e /etc/host.conf ]; then
+        echo "got file2"
+    fi  # Closes the inner if
+fi      # Closes the outer if
+
+---------------------------
+
+# The read command in Linux shell scripting is a built-in command used to capture a line of input from standard input (like the keyboard) and store it into a variable
+
+read [options] VARIABLE_NAME
+
+#  If you run read without providing a variable name, Bash automatically stores the input in a built-in default variable named $REPLY
+
+# With multiple variables: If you provide multiple variable names (e.g., read var1 var2), read will split the input line based on spaces; the first word goes to var1, the second to var2, and any remaining text is dumped into the final variable.
+
+read var1
+# 4
+echo $var1
+# 4
+
+read var1 var2
+# 45 21
+echo $var1
+# 45
+echo $var2
+# 21
+
+
+# -p	Displays a prompt string before waiting for input.	
+read -p "Enter your name: " user_name
+
+# -s	Silent mode. Hides characters as they are typed (perfect for passwords).	
+read -sp "Enter password: " user_pass
+
+
+# -t	Sets a timeout in seconds. If the user doesn't hit enter, it stops waiting.	
+read -t 5 -p "Hurry (5s limit): " quick_ans
+
+# -a	Reads the input line split into an array instead of standard variables.	
+read -a colors_array
+
+#! /usr/bin/bash
+
+read -p "Enter a number: " num
+if [ "$num" -ge 0 ];
+then echo "it is positive Number";
+elif [ "$num" -lt 0 ];
+then echo "it is negative Number";
+fi
+
+-------------------------------
+# while read -r line; do
+#     echo "Processing: $line"
+# done < "users.txt"
+

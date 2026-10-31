@@ -1,0 +1,55 @@
+sudo
+
+sudo stands for "superuser do". It is a Linux command that allows a permitted user to run commands with the security privileges of root (administrator) user.
+
+Why use sudo?
+
+Many system administration tasks require root privileges, such as:
+
+Installing software
+Updating the system
+Managing users
+Editing system configuration files
+Starting or stopping system services
+
+Instead of logging in as root, you can use sudo to execute a single command with elevated privileges.
+
+sudo command
+sudo dnf install httpd
+
+
+to switch to root shell(have elevated permissions to execute commandsin that shell)
+sudo -i
+sudo su -
+
+the sudoers file is the configuration file that controls which users or groups are allowed to run commands with elevated privileges (typically as the root user) using the sudo command.
+
+Location
+/etc/sudoers
+
+
+-------------
+
+local DNF server
+
+A local DNF server (or local DNF repository server) is a server inside your network that hosts RPM packages and repository metadata for systems that use DNF (Dandified YUM), the package manager in RHEL 8/9, CentOS Stream, Rocky Linux, and AlmaLinux. Instead of every server downloading packages from the internet, they download them from the local repository server.
+
+Why Use a Local DNF Server?
+
+Imagine you have 100 RHEL servers.
+
+Without a local DNF server:
+
+Every server downloads packages from Red Hat repositories.
+Internet bandwidth is consumed repeatedly.
+Updates are slower.
+Systems without internet access cannot install packages.
+
+With a local DNF server:
+
+Packages are downloaded once from Red Hat.
+All internal servers get packages from the local repository.
+Faster installations and updates.
+Useful in secure or air-gapped environments.
+
+
