@@ -1,0 +1,31 @@
+In Linux, a daemon (pronounced "DEE-mən") is a long-running background process that operates independently of an interactive user. Unlike standard desktop applications or terminal tools, daemons do not have a graphical interface, nor are they attached to a controlling terminal window.
+They act as the system's "invisible workers," quietly waiting for specific events, schedules, or requests to perform critical system tasks.
+
+
+Key Characteristics of a Daemon
+
+• No User Interaction: They start, run, and stop without needing direct human input.
+• The "d" Suffix: By convention, most daemon program names end with the letter d (e.g., sshd, syslogd, crond).
+• Detached from Terminals: If you close your terminal window, open applications usually shut down. Daemons explicitly sever their link to the terminal so they keep running safely in the background.
+• Boot Initiation: Many daemons are triggered automatically when the system boots up and run continuously until the machine is turned off.
+
+
+Common Examples in Linux
+
+• sshd (Secure Shell Daemon): Listens for incoming remote connection requests so you can log into the machine securely.
+• crond (Cron Daemon): Monitors the system clock to execute scheduled background tasks (like automated backups at midnight).
+• httpd / nginx: Web server daemons that listen for network requests to serve webpages to internet browsers.
+• systemd: The very first process that starts when Linux boots up; it acts as the "parent" daemon responsible for launching and managing all other daemons.
+
+How to View and Manage Daemons
+
+Modern Linux distributions use a system manager called systemd to control these background processes using the systemctl command.
+
+systemctl status sshd
+sudo systemctl stop sshd
+sudo systemctl start sshd
+
+Enable a daemon to start automatically at boot
+sudo systemctl enable sshd
+
+ps aux | grep 'd '
