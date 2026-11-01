@@ -7,6 +7,10 @@ do
     # Commands to run while the condition is true
 done
 
+ while loop checks the exit status of the condition command. If the command succeeds (returns an exit status of 0), the loop runs. If it fails (returns a non-zero status), the loop terminates.
+
+ do and done: The brackets/boundaries that enclose the code block to be executed.
+
 Tip: Always ensure the loop includes a way to update the variables used in the condition. If the condition never becomes false, you will create an infinite loop that runs forever until you manually kill it (using Ctrl + C).
 
 This loop counts from 1 up to 5. We initialize a variable, check it in the condition, and increment it inside the loop.
@@ -109,3 +113,285 @@ Why this is the best practice for reading files:
 • IFS=',' (Internal Field Separator): By setting IFS directly on the while line, we safely split the comma-separated text into three distinct variables ($server_name, $ip_address, and $role) on the fly.
 • read -r: The -r flag prevents backslashes (\) inside your text file from acting as escape characters, ensuring your data reads exactly as it looks.
 • done < "$FILE": Feeding the file at the end of the loop is much faster and more memory-efficient than using cat servers.txt | while read ..., because it doesn't create an extra system process (avoiding what developers call the "useless use of cat").
+
+
+
+
+-----------------------------------------------------------------------------
+
+How is input passed to while ?
+!remember
+in linux all the inputs passed to a loops are read or received by read command
+
+1. File Redirection (< filename)
+
+This is the cleanest and most common method. The less-than symbol (<) acts like a funnel, attaching the file directly to the bottom of the loop structure.
+
+counter=5
+while [ $counter -gt 0 ]
+do
+read -r line
+echo $line
+((counter--))
+done < script.sh
+
+
+• How it flows: 1st Bash opens script.sh and assigns it as the input channel for the entire do ... done block. 
+at each iteration of while loop, individual line is given to do..done block
+read command can receive the individual line and pass it to seom vairbale(ex: line)
+Every time read asks for data, it pulls the next line from that open file channel.
+
+2. Piping a Command (| while)
+
+If the data you need doesn't exist in a file yet, but is generated live by another Linux command, you can use a pipe (|) to stream that command's output directly into the loop.
+
+counter=5
+cat script.sh | while [ $counter -gt 0 ]
+do
+read -r line
+((counter--))
+echo $line
+done
+
+# here the output of cat script.sh is given as input to while loop and input is received or read by read command
+
+3. Here-Strings and Here-Docs (<<< or <<)
+
+If you want to feed a raw text variable or a hardcoded multiline block of text directly into a loop without saving it to a file, you use "Here" syntax.
+
+Using a Here-String (<<<):
+Passing a single text variable into the loop.
+
+names="Alice bob charlie"
+while read -r line; do
+    echo $line
+done <<< $names
+
+output:
+Alice bob charlie
+--
+names="Alice Bob Charlie"
+
+# Loop reads words one by one out of the variable string
+while read -r first second third; do
+    echo "$first, $second, and $third"
+done <<< "$names"
+--
+
+Using a Here-Doc (<<):
+
+Passing a literal block of multi-line text directly in the script code.
+
+while read -r line; do
+    echo "Item: $line"
+done << 'EOF'
+Apples
+Bananas
+Cherries
+EOF
+
+-----------------------------------------
+
+read in while loop
+
+# Inside a line-by-line while loop, the read command functions as an input engine that pulls exactly one line of text at a time, stores it in a variable, and tells the loop whether to keep going or stop.
+
+1. The Core Action (read)
+By default, the read command waits for data from an input stream (which is fed into the loop by the file at the bottom or other ways). It scans the incoming text from left to right until it hits a newline character (\n).
+
+Once it finds the end of the line, it stops reading, slices that segment off the stream,and stores it in some variable and moves the file pointer down to the next line, waiting for the next iteration of the loop.
+
+
+2. The Backslash Safeguard (-r)
+The -r option stands for raw input.
+• Without -r: Bash treats backslashes (\) as escape characters. If your file contains a path like C:\Users\Name, Bash will drop the backslash and output C:UsersName. If a line ends in a backslash, Bash thinks the line is continuing onto the next row.
+• With -r: Bash treats backslashes as literal characters. C:\Users\Name stays exactly as it is written.
+
+basically it will stop escape characters from functioning and get it in raw data
+
+3. The Target Storage (line)
+This is simply a variable name chosen by you. You could name it row, data, or x. The read command takes the text it just swallowed and stores it inside this variable. You can then access it inside the loop using $line.
+
+[File Stream] ──> Line 1 ──> read command sees text ──> Success (0) ──> Loop Runs
+[File Stream] ──> Line 2 ──> read command sees text ──> Success (0) ──> Loop Runs
+[File Stream] ──> End of File (EOF) ──> read finds nothing ──> Failure (Non-Zero) ──> Loop Breaks
+
+read will return exit status
+As long as read successfully captures text, (Exit status 0). 
+When the file runs out of text (End of File, or EOF), read tries to grab a line but finds nothing. (Exit status 1).
+
+so you can use this read command inside while loop as condition
+
+while read -r line; do
+    echo "Processing: $line"
+done < data.txt
+
+cat data.txt | while read -r line; do
+    echo "Processing: $line"
+done
+
+# Lists all .log files and processes them one by one
+ls *.log | while read -r logfile; do
+    echo "Found log file: $logfile"
+done
+
+
+The read command is unique because it can split data on the fly. If you provide it with multiple variable names, it will automatically break the line apart based on spaces (or whatever your IFS variable is set to).
+
+# Imagine the file contains the line: "Server01 192.168.1.50 Online"
+
+while read -r hostname ip status; do
+    echo "Checking $hostname ($ip)... Status is $status."
+done < servers.txt
+
+# here defaul IFS set to space
+• $hostname gets the 1st word (Server01)
+• $ip gets the 2nd word (192.168.1.50)
+• $status gets the 3rd word (Online)
+
+
+------------------------------------------
+
+IFS stands for Internal Field Separator. It is a special environment variable that determines how Bash recognizes word boundaries and splits strings into individual pieces.
+
+Think of IFS as Bash's default settings for delimiter characters. Whenever Bash needs to parse a sentence, read a line, or expand an array, it consults IFS to know exactly where one word ends and the next begins.
+
+
+ The Default Value of IFS
+
+By default, IFS contains three specific whitespace characters:
+1. A space ( )
+2. A tab (\t)
+3. A newline (\n)
+Because of this default behavior, if you type for word in Hello World Structure, Bash splits on the spaces and processes three distinct words.
+so by default your text have spaces or tab space or new line then bash seperates them into individual values, not as single value when it is passed as list or collection
+
+How IFS Works Inside a while read Loop
+
+When reading files line-by-line, IFS drastically changes how the read command handles your data.
+
+Scenario 1: Clearing IFS to Preserve Whitespace (IFS=)
+
+while IFS= read -r line; do
+    echo "$line"
+done < file.txt
+
+Setting IFS= ensures the line is read exactly as it appears in the file, preserving all leading and trailing whitespace.
+For this specific read operation, there are absolutely no word delimiters.
+
+Scenario 2: Changing IFS to Parse Structured Files (CSV / Columns)
+If you intentionally want to slice a line into distinct variables based on a specific character, you can redefine IFS.
+# Imagine a file entry: "john:admin:/bin/bash" (Standard Linux /etc/passwd format)
+
+while IFS=':' read -r user role shell; do
+    echo "User $user uses the $shell environment."
+done < users.txt
+
+How it works: By setting IFS=':', you instruct the read command to stop splitting on spaces and tabs, and only split the text when it hits a colon
+
+why IFS most of the time written before read
+
+You will often see IFS altered in two different ways in scripts. One is safe, and one can break your script.
+
+❌ The Unsafe Way (Global Change)
+IFS=':'
+
+If you change IFS globally on its own line, it alters how everything in the script behaves from that point forward. Later on, standard loops or word expansions might break because Bash is no longer recognizing spaces as word separators.
+
+
+The Safe Way (Local/Inline Change)
+
+IFS=':' read -r var1 var2
+
+When you prefix a command with a variable assignment like this, Bash applies that change only for the execution of that single command. The moment the read command finishes a line, IFS instantly snaps back to its normal, default whitespace settings.
+
+examples :
+# Example file (users.csv): john,admin,active
+while IFS=',' read -r username role status; do
+    echo "User $username is an $role and is currently $status."
+done < users.csv
+
+IFS will seperate the line received and parse it into individual value
+
+while IFS= read -r line; do
+    echo "Line content: $line"
+done < input.txt
+
+
+-----------------------------------------------------------------------------------------------------------------
+
+break and continue in loops
+
+In Linux Bash scripting, break and continue are loop control statements used to alter the standard flow of execution inside loops (while, until, and for).
+
+Without them, a loop simply repeats blindly until its core condition is met. These two keywords allow you to react dynamically to changes or specific data inside the loop.
+
+
+1. The break Statement (Exit Completely)
+
+The break statement instantly terminates the entire loop and jumps straight to the code following the done keyword. It completely kills the loop, regardless of whether the loop's original condition is still true.
+
+Best Used For:
+
+• Escaping an infinite loop (while true).
+• Stopping early once you've found what you were looking for (saving CPU cycles).
+• Aborting the script if a critical error or file corruption is detected.
+
+
+Practical Example:
+
+Imagine you are scanning a file for an administrative error. The moment you find it, you want to stop processing and exit.
+
+#!/bin/bash
+
+while read -r log_line; do
+    if [[ "$log_line" == *"CRITICAL_FAILURE"* ]]; then
+        echo "🚨 Critical error detected! Stopping immediate processing."
+        break # Exits the while loop entirely
+    fi
+    echo "Processing line: $log_line"
+done < system.log
+
+echo "Script has moved past the loop."
+
+2. The continue Statement (Skip and Move On)
+
+The continue statement skips the remaining commands inside the current iteration of the loop and instantly jumps back up to the top to start the next iteration. It does not kill the loop; it just bypasses the current step.
+
+
+Best Used For:
+
+• Skipping blank lines or commented lines (#) when reading a configuration file.
+• Filtering out data you don't care about before executing complex commands.
+• Bypassing errors on a single file so your script can move on to the next file without crashing.
+
+
+Practical Example:
+
+Imagine you have a text file of user accounts, but some rows are blank or are comment lines starting with #. You want to skip those cleanly.
+
+#!/bin/bash
+
+while read -r username; do
+    # Skip empty lines or comment lines
+    if [[ -z "$username" || "$username" == #* ]]; then
+        continue # Instantly jumps back to the top to read the NEXT line
+    fi
+
+    # This code only runs if the 'continue' was NOT triggered
+    echo "Creating system folder for user: /home/$username"
+done < users.txt
+
+Advanced Tip: Breaking out of Nested Loops (break N)
+
+By default, break and continue only apply to the innermost loop you are currently running. However, if you are running a loop inside another loop, you can pass a number N to control outer layers:
+• break 2 terminates the current loop and the outer loop surrounding it.
+• continue 2 skips the rest of the current inner loop and triggers the next iteration of the outer loop.
+
+for folder in /data/*; do
+    while read -r file; do
+        if [[ "$file" == "STOP_ALL" ]]; then
+            break 2 # Breaks out of BOTH the while loop and the outer for loop
+        fi
+    done < "$folder/manifest.txt"
+done

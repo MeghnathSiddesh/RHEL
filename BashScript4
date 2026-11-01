@@ -167,12 +167,21 @@ The AND Operator (&&)
 # • Analogy: "If step A goes well, move to step B."
 mkdir /var/log/my_app && cd /var/log/my_app
 
+• Returns Success (0): Only if all executed commands succeed.
+• Returns Failure (non-zero): If any command fails, the operator stops execution and returns the exit status of the failed command.
+• Example: true && true returns 0. true && false returns 1. false returns 1
+
 
 The OR Operator (||)
 
 # The second command executes only if the first command fails (returns a non-zero exit status).
 # Analogy: "Try step A. If it breaks, do step B as a backup."
 grep -q "error" system.log || echo "System is clean!"
+
+• Returns Success (0): As soon as one command succeeds, execution stops and it returns 0.
+• Returns Failure (non-zero): Only if all attempted commands fail. The final exit code will be the status of the last failed command.
+• Example: false || true returns 0. false || false returns 1.
+
 
 The NOT Operator (!)
 # Reverses the outcome of a condition or command. It turns a success into a failure and vice versa.
@@ -181,6 +190,10 @@ if [ ! -f /etc/config.json ]; then
     echo "Configuration file missing!"
 fi
 
+The ! pipeline operator simply inverts the exit status of the command that immediately follows it.
+• If the command succeeds (returns 0), ! converts the overall exit status to 1 (failure).
+• If the command fails (returns non-zero), ! converts the overall exit status to 0 (success).
+• Example: ! true returns 1. ! false returns 0.
 
 2. The Data Level: grep Text Filtering
 
@@ -198,6 +211,8 @@ grep "PatternA" filename | grep "PatternB"
 # Practical Example: Find logs where "User1" successfully "Logged-in"
 grep "User1" /var/log/auth.log | grep "Logged-in"
 
+#here the output of first command will be given as input to second command
+
 # • Why it’s great: You can chain as many as you want (grep A | grep B | grep C).
 
 
@@ -213,3 +228,4 @@ grep NOT Logic
 
 # To exclude specific terms, use the -v (invert match) flag we discussed earlier.
 grep -v "DEBUG" /var/log/nginx/access.log
+
