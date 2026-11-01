@@ -1,0 +1,43 @@
+exit command is a built-in shell utility used to close the current terminal session, terminate a shell script, or exit from a logged-in user environment.
+
+exit [status]
+
+The status argument is an optional integer between 0 and 255 known as the exit status code or return code.
+exit 0: Signals Success. Everything ran cleanly with zero errors. (This is the default value if you type exit on its own).
+exit 1 to exit 255: Signals an Error. Different numbers indicate different types of failures (e.g., file not found, permission denied).
+
+to check exit status of last command use : echo $?
+
+echo $SHLVL
+it will tell you the shell level you are using in temrinal
+if echo $SHLVL is 4 you are inside 4th sub-process
+
+process->sub-process->sub-sub-process->sub-sub-sub-process
+use exit  or ctrl+D to exit(terminate) from sub-process or process to its parent process
+
+3 Main Use Cases
+
+1. Ending a Terminal or SSH Session
+(Alternatively, you can press Ctrl + D on a blank command line; it sends an End-of-File marker that acts exactly like running the exit command).
+
+2. Stepping out of a Subshell or User Switch (su)
+root@server:/# exit
+exit
+ec2-user@server:~$ 
+
+
+3. Terminating Shell Scripts Safely
+exit command inside the script terminates the executing script 
+
+#!/bin/bash
+
+# Check if a critical configuration file exists
+if [ ! -f "/etc/app.conf" ]; then
+    echo "❌ Error: Configuration file missing!"
+    exit 1 # Aborts the script immediately and reports an error
+fi
+
+echo "File found. Proceeding with application..."
+exit 0 # Script finished perfectly
+
+

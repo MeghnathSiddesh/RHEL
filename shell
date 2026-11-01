@@ -1,0 +1,144 @@
+shell is program that takes input, command, instruction to kernel and give us the output from kernel
+that is the command is executed
+
+terminal is not a shell, it is just CLI, and interface that helps us to use the shells
+shells ex : bash, ksh(korn shell), csh, zsh
+
+[root@ip-172-31-7-169 /]#  this is bash shell, becuase bash shell show current user and it ip
+
+# -> this is kshell
+
+every command we fire in terminal is received by shell
+
+all users in linux will have their default shell
+how to check : echo $SHELL
+SHELL is an environment variable that shows default shell of current user
+you can check it in /etc/passwd
+you can change their default shell there and put new shell
+
+to change the shell temporarily, write the shell name
+
+[root@ip-172-31-7-169 /]# ksh
+#
+->shell change to ksh
+
+# bash
+[root@ip-172-31-7-169 /]#
+-> shell changed to bash
+
+to change shell for an user
+>chsh
+example :
+[root@ip-172-31-7-169 ec2-user]# chsh
+Changing shell for root.
+New shell [/bin/bash]:/bin/ksh
+shell changed
+
+to change default shell of specific user
+chsh user_name
+ex: chsh ec2-user
+Changing shell for ec2-user.
+New shell [/bin/bash]: /bin/ksh
+Shell changed.
+
+you are currently logged in as ec2-user and you user bash shell and now you change default shell of ec2-user to ksh and  it will not automatically change the current shell to ksh, you need to automatically change the shell
+
+when you switch the user also shell will not be changed to users default shell, same shell which you are using will be retained, you need to change current shell manually
+
+<!-- here if you visit /etc/passwd the default shell for root will be changes to /bin/ksh -->
+
+[root@ip-172-31-7-169 ec2-user]# echo $SHELL
+/bin/bash
+[root@ip-172-31-7-169 ec2-user]# chsh ec2-user
+Changing shell for ec2-user.
+New shell [/bin/bash]: /bin/ksh
+Shell changed.
+[root@ip-172-31-7-169 ec2-user]# echo $SHELL
+/bin/bash
+
+The value of $SHELL didn't change because the chsh command updates your future login settings in a system file, but it does not change the environment variables of your current, already-running terminal session.
+chsh Writes to Disk (/etc/passwd)
+The change is saved successfully, but it only acts as a blueprint for future logins.
+The $SHELL environment variable is read-only populated once at the exact moment you first log into a terminal session.
+• Modifying the file on disk via chsh does not dynamically update the active memory of a terminal that is already running.
+
+
+
+you can check all available shells in the system in : etc/shells or you can use : chsh -l
+[ec2-user@ip-172-31-7-169 /]$ cat /etc/shells
+/bin/sh
+/bin/bash
+/usr/bin/sh
+/usr/bin/bash
+/bin/ksh
+/bin/rksh
+/usr/bin/ksh
+/usr/bin/rksh
+
+echo $SHLVL
+to check the shell level
+
+dnf install -y shell_name
+<!-- to install shell -->
+
+dnf install -y zsh
+chsh -l
+
+<!-- to check whcih shell currently processing your commands -->
+echo $0
+
+<!-- or -->
+ps -p $$
+
+PID TTY          TIME CMD
+2211 pts/1    00:00:00 bash
+
+to findout path or which bash shell you are using
+which bash
+which ksh
+etc.. it will show path of shell
+
+
+su ec2-user
+it will just switch the user to ec2-user
+all the ENV variables will have same value as when you login first
+you will be inside the sub-process, echo $SHLVL
+
+to login to ec2-user as fresh and dont want to run under parent process
+if you want fresh ENV variable values
+use : su - ec2-user
+echo $SHLVL
+-> 1
+
+su - ec2-user switches your current terminal session to the ec2-user login shell, loading that user's environment variables, path, and home directory.
+Dash (-): A login shell simulation. It initializes a clean environment as if ec2-user logged in directly via a login session (changing directory to /home/ec2-user and updating shell profile variables like $PATH).
+
+if you exit, it will go to previous state and previous shell level
+
+
+
+shell-scripting:
+you dont need to compile script unlike other programming languages
+it will be directly interpreted by OS
+
+when you write a shell script inside a file, you need to tell which shell it should use to execute at its first line
+
+#! /bin/bash
+
+when you execute this .sh file it will be executed in bash shell
+
+you should have execute permissions to that file
+ls -l
+chmod +x file_name
+
+to execute a file without permissions, use
+shell_name file_name.sh
+
+bash script.sh
+
+----------
+commenting
+
+# whatever written after # will be ignord by syste
+
+it may be inside script or a command
