@@ -1,0 +1,45 @@
+Process management in Linux involves monitoring, prioritizing, terminating, and adjusting the resources allocated to running programs. Every running program is treated as a process and assigned a unique Process ID (PID).
+
+
+1. Monitoring and Viewing Processes
+
+These commands help you see what processes are running, who owns them, and how many system resources (CPU, RAM) they are consuming.
+• ps (Process Status): Provides a static snapshot of current processes.
+	• ps : Shows processes running in the current terminal session.
+	• ps aux : Displays all running processes across the entire system for all users.
+	• ps -ef : Displays all processes with full detail, including parent-child relationships (PPID).
+• top: Provides a real-time, dynamic view of system activity, sorted automatically by CPU usage.
+	• Shortcuts inside top: Press q to quit, M to sort by memory, and P to sort by CPU.
+• htop: An advanced, interactive, and user-friendly text-mode process viewer. It features color-coded bars for CPU/RAM usage and supports mouse clicks. (May require installation: sudo apt install htop or sudo dnf install htop).
+
+
+
+2. Terminating and Controlling Processes
+
+If a process becomes unresponsive or needs to be stopped, Linux uses signals to communicate with it.
+• kill <PID>: Sends a signal to a process using its PID. By default, it sends SIGTERM (15), which asks the program to exit gracefully.
+• kill -9 <PID>: Sends SIGKILL (9), which forces the process to terminate immediately without saving data or cleaning up.
+• pkill <pattern>: Terminates processes based on their name or a pattern match instead of a PID (e.g., pkill firefox).
+• killall <name>: Kills all instances of a process that share the exact specified name.
+
+
+3. Managing Priorities (Niceness)
+
+Linux prioritizes processes using a Nice value, which ranges from -20 (highest priority, least nice) to 19 (lowest priority, most nice). The default nice value is 0.
+• nice: Starts a new process with a customized priority level.
+	• Example: nice -n 10 official-script.sh (runs a script with lower priority, giving up CPU time to other tasks).
+• renice: Modifies the priority of an already running process using its PID.
+	• Example: renice -n -5 -p 1234 (increases the priority of PID 1234; requires root/sudo privileges)
+
+
+
+4. Job Control (Foreground & Background)
+
+When running commands via a terminal interface, you can move tasks between the foreground (blocking the terminal) and the background (running silently).
+• & (Ampersand): Appending this to the end of any command runs it directly in the background.
+	• Example: python3 script.py &
+• Ctrl + Z: Suspends (pauses) the currently running foreground process and returns you to the prompt.
+• jobs: Displays a list of all background or suspended jobs in the current shell session.
+• bg %<job_id>: Resumes a suspended process, letting it run in the background.
+• fg %<job_id>: Brings a background or suspended process back into the foreground.
+• nohup: Runs a command that is immune to hangups (SIGHUP), meaning it will keep running even if you close the terminal or log out.
