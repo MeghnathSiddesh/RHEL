@@ -1,0 +1,18 @@
+Click New ruleset.
+
+Select New branch ruleset.
+
+Configure:
+
+Branch target:
+main
+
+Enable:
+✅ Restrict updates
+✅ Require a pull request before merging
+✅ Require approvals (1 or more)
+✅ Require status checks (optional)
+✅ Block force pushes
+✅ Require conversation resolution
+
+Save the ruleset.
