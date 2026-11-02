@@ -1,0 +1,77 @@
+In Linux, a child shell is a brand-new shell process spawned by a parent shell, running completely independently of its creator's local environment
+
+While a subshell is a temporary "clone" that remembers everything from the parent, a child shell is like a fresh, blank canvas. It only knows about settings and variables that the parent shell explicitly decides to share with the rest of the system.
+
+whatever modifications done in child shell will not be reflected in parent shell
+
+How to Create a Child Shell
+
+You explicitly create a child shell every time you call a shell program by its name from your current terminal, or when you run a standalone script:
+
+# Launches a brand new Bash child shell
+bash 
+
+# Launches a different shell type (like Zsh or Dash) as a child
+zsh 
+
+# Running a script with a shebang (#!/bin/bash) also launches a child shell
+./myscript.sh
+
+Note: To close a child shell and return to your parent shell, you simply type exit.
+
+
+Why Use a Child Shell? (Key Benefits)
+
+• Total Environment Reset: It allows you to test scripts or configurations in a clean environment without your current terminal's history, local variables, or custom aliases interfering.
+• Security & Cleanliness: If a script crashes, creates hundreds of temporary variables, or encounters an error, the chaos is completely contained. Once the script finishes, the child shell terminates, and the parent shell remains perfectly clean.
+• Alternative Shell Testing: It lets you temporarily switch from Bash to another shell (like zsh or sh) to test compatibility.
+
+
+Tracking Shell Depth: $SHLVL
+Linux tracks how deep your child shells are nested using an environment variable called $SHLVL (Shell Level). Every time you launch a child shell, this number goes up by 1.
+
+echo $SHLVL   # Outputs: 1 (Your main terminal)
+bash          # Launches a child shell
+echo $SHLVL   # Outputs: 2 (Inside the child shell)
+exit          # Drops back down to the parent
+echo $SHLVL   # Outputs: 1
+
+
+The Crucial Rule: The export Command
+
+Because a child shell is an independent process, it cannot see the parent shell's local variables unless you "export" them.
+
+# 1. Create a standard local variable in the parent shell
+MY_NAME="Alice"
+
+# 2. Open a child shell
+bash
+
+# 3. Try to read it (It will print nothing!)
+echo $MY_NAME 
+
+# 4. Exit back to the parent shell
+exit
+
+# 5. Export the variable so the whole system can see it
+export MY_NAME
+
+# 6. Open a child shell again and read it
+bash
+echo $MY_NAME  # Outputs: Alice
+
+![alt text](image.png)
+
+By default, shell scripts use a child shell
+
+When you run a script (e.g., ./myscript.sh), Linux reads the "shebang" line at the very top (like #!/bin/bash), initializes a brand-new, independent child shell process, runs the code inside it, and terminates that child process when the script finishes.
+
+Even though the script itself runs in a child shell, you can still use subshells inside the script's code for temporary tasks by using parentheses ( ) or command substitution $( ).
+#!/bin/bash
+# (This whole script is running in a CHILD SHELL)
+
+# Creating a temporary SUBSHELL inside the script
+(cd /tmp && touch test.txt)
+
+# The script continues here, still in its original directory
+

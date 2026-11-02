@@ -1,0 +1,51 @@
+
+ The Exception: Sourcing (Current Shell / Subshell rules)
+ If you want a script to execute inside your current shell (without spawning a child shell), you must source it using source or ..
+
+ ex: 
+# Inside "script.sh":
+cd /var/log
+MY_VAR="Hello"
+
+$ source ./script.sh
+$ echo $MY_VAR   # Output: Hello (It worked!)
+
+so If you need a script or set of commands to affect your current parent shell (such as changing environment variables or your working directory), you must run them in the context of the current shell using the source command (or the dot . operator) instead of spawning a separate child processor subshell:
+
+examples:
+
+source script.sh
+# or
+. script.sh
+
+the ./script.sh is different, not sourcing, the script will run in a subshell not current shell
+
+source cd /home/ec2-user
+# or
+. cd /home/ec2-user
+<!-- normally usual commands will be running inside parent process only -->
+
+this will not spawn child process or sub shell, this will make current shell to seceute this
+
+source : The source command in Linux evaluates and executes the contents of a file directly within the current shell session, rather than spawning a new subshell process.
+
+do this behavior any environment variables, path modifications, aliases, or function definitions created inside the sourced file that will be executed will persist in your active terminal window even after the script finishes executing.
+
+Changes to variables/aliases stay active in your terminal. unless current shell closed
+Does not require execute (+x) permissions.
+if you are executing the script as source you dont need shebang (#!/bin/bash) Not required (uses your current shell).
+
+and whatever modifications you actually do in the current shell, those modifications will be deleted once the current shell process closed
+
+
+Common Use Cases
+
+Refreshing Shell Configurations: If you make changes to files like ~/.bashrc or ~/.zshrc, you can apply those updates instantly to your current window by running:
+
+ex: source ~/.bashrc
+
+Activating Python Virtual Environments: Virtual environments rely on altering your active terminal's PATH variable to prioritize local packages. Sourcing ensures your current terminal adopts those paths:
+
+ex: source .venv/bin/activate
+
+Modular Shell Scripting: You can create a standalone text file filled with utility functions or global configurations, and then source that file inside other automation scripts to import its functionality—similar to an import statement in Python or #include in C++.

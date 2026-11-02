@@ -1,0 +1,59 @@
+The $PATH variable in Linux is an environment variable that tells the shell which directories to search for executable files when you type a command.
+
+for example, you want to execute a command ls, normally you will need to give path to the command file to execute it 
+(like /bin/ls)
+
+with $PATH variable allows you to simply type ls
+
+How it Works
+When you type a command (e.g., python3 or grep) and press Enter, the shell reads the directories listed in your $PATH variable from left to right. It looks into each directory sequentially until it finds an executable matching that name and runs it. If it searches all the listed directories and finds nothing, it returns the infamous error: command not found.
+
+
+🔍 How to View Your Current PATH
+
+echo $PATH
+
+/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+In this example, if you run any command, the shell looks in /usr/local/sbin first. If it's not there, it checks /usr/local/bin, then /usr/sbin, and so on.
+
+
+⚙️ How to Add a New Directory to PATH
+
+
+1. Temporary Change (Current Session Only)
+To add a folder just for your current terminal window, use the export command:
+
+export PATH=$PATH:/home/user/myscripts
+
+echo $PATH
+/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/user/myscripts
+
+whatever the executable files in that folder, can be executed directly with the file name, without having to give complete path to that executable file
+
+Note: $PATH: prepends the existing path layout so you append your new folder to the end of the list rather than overwriting the whole variable.
+$PATH:/home/user/myscripts
+
+Note: you can only add folders path to $PATH, $PATH environment variable only looks for directories containing executable files, not direct paths to the files themselves.
+
+Ensure your script has executable permissions:
+chmod +x /root/scrip1.sh
+
+export will create, add, modify the environment variables for current session
+
+
+2. Permanent Change (Recommended)
+
+Because temporary changes disappear as soon as you close the current shell or terminal, you can make them permanent by adding the export command to your shell's configuration profile:
+
+Open your shell configuration file using a text editor like nano:
+	• For Bash (default on Ubuntu/Debian): nano ~/.bashrc
+	• For Zsh (default on macOS/Arch/Kali): nano ~/.zshrc
+
+Scroll to the very bottom of the file and paste your export line:
+export PATH="$PATH:/home/user/myscripts"
+
+Save and exit (Ctrl+O, Enter, then Ctrl+X in nano).
+
+Reload the profile immediately without logging out by running:
+source ~/.bashrc  # Or source ~/.zshrc

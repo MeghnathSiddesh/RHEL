@@ -1,0 +1,72 @@
+The .bashrc file is a hidden shell script located in a user's home directory (~/.bashrc)
+
+path:
+go to users home directory: /home/ec2-user/ ;cat ~/.bashrc
+for root: /root ;cat ~/.bashrc
+
+it is a hidden file : ls -a
+~/.bashrc example:
+---------------------------------
+# .bashrc
+
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+        . /etc/bashrc
+fi
+
+# User specific environment
+if ! [[ "$PATH" =~ "$HOME/.local/bin:$HOME/bin:" ]]
+then
+    PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+fi
+export PATH
+
+# Uncomment the following line if you don't like systemctl's auto-paging feature:
+# export SYSTEMD_PAGER=
+
+# User specific aliases and functions
+
+alias rm='rm -i'
+alias cp='cp -i'
+alias mv='mv -i'
+
+-------------------------
+
+this file automatically runs every time a new interactive, non-login Bash terminal session is opened. In simpler terms, it acts as a startup configuration checklist for your terminal window, allowing you to personalize how the command line looks, behaves, and responds to your commands.
+
+new interactive, non-login Bash terminal session is simply opening a new terminal tab or window on your computer.
+
+--------------------
+1. Interactive
+• Interactive: You type a command (like ls or mkdir), hit Enter, see the output, and get a prompt (like $ or user@computer:~#) waiting for your next command.
+• Non-Interactive: This is when a machine runs a script automatically in the background. No human is typing, and no visual prompt is shown.
+
+ Non-Login (vs. Login)
+
+ • Login Shell: The very first shell that opens when you log into a computer. For example, when you boot up a Linux machine and sign in, or when you connect to a remote server using SSH. It loads profile files like ~/.bash_profile.
+• Non-Login Shell: A shell opened after you are already logged into your user account
+
+New Session
+New shell opened or terminal opened
+
+------------------------------------
+
+What is .bashrc Used For?
+
+The .bashrc file is used to store persistent terminal customizations. Without it, any changes you make during a terminal session (like creating a temporary shortcut) disappear the moment you close the window.
+
+Its most common use cases include:
+
+• Creating Aliases: You can create custom shortcuts for long or complex commands. For example, adding alias ll='ls -la' allows you to type ll instead of the full list-all command.
+• Modifying Environment Variables: It is frequently used to alter the system behavior by updating variables, most notably expanding your $PATH variable so the system knows where to find newly installed software executables.
+• Loading Shell Functions: You can write small, custom shell functions to automate repetitive command line workflows.
+
+
+File Location	~/.bashrc (Expands to /home/username/.bashrc).
+Shell Type	    Runs specifically for Interactive, Non-Login Shells (e.g., opening a new terminal window or tab on your
+                desktop, or typing bash inside an active terminal).
+Scope	        Per-User Configuration. Each user on a Linux system has their own independent .bashrc file. (System-wide 
+                changes for all users are typically managed in /etc/bash.bashrc).
+
+so .bashrc if particular for users so when you modify the .bashrc file to add new value for environment variable, the add value will be reflected only for that user, so only that user can execute that script in the path directly using $PATH
+

@@ -1,0 +1,46 @@
+In Linux, a subshell is a child process spawned by your current shell (the parent shell) to execute commands in an isolated environment.
+
+Think of it as a temporary, cloned sandbox: it inherits the state, variables, and aliases of the parent shell, but any changes made inside it (like switching directories or changing a variable) disappear completely the moment the subshell finishes executing.
+
+
+How to Create a Subshell
+
+The most common way to explicitly create a subshell is by enclosing commands within parentheses ( ):
+
+(command1; command2; command3)
+
+
+Why Use a Subshell? (Key Benefits & Use Cases)
+
+Environment Isolation: You can temporarily change directories (cd) or alter environment variables without messing up your main terminal window.
+# Example: temporarily checking a different folder
+(cd /var/log && ls)
+
+ex: 
+[root@ip-172-31-7-169 log]# (cd /var/log && ls)
+audit  choose_repo.log  cloud-init-output.log  cron             dnf.log      hawkey.log       lastlog  messages  rhsm    spooler  tuned
+btmp   chrony           cloud-init.log         dnf.librepo.log  dnf.rpm.log  insights-client  maillog  private   secure  sssd     wtmp
+[root@ip-172-31-7-169 log]# #back to same directory;log
+
+# You are instantly back in your original directory here!
+
+Command Grouping & Backgrounding: You can group multiple commands to run together in the background by appending an ampersand (&) to the closing parenthesis.
+(sleep 5; echo "Task 1 Done") &
+
+Variable Protection: Variables created or modified inside a subshell do not leak back into your parent shell.
+VAR="Original"
+(VAR="Changed"; echo $VAR)  # Outputs: Changed
+echo $VAR                   # Outputs: Original
+
+Inherits all local variables and aliases from the parent.
+
+-----------------------------
+
+
+When does Linux use Subshells automatically?
+
+1. Command Substitution: Using $(command) to save a command's output to a variable runs that command inside a subshell.
+2. Pipes: In many shells (like Bash), commands separated by a pipe (|) run in their own subshells.
+3. Shell Scripts: When you execute a shell script file, it naturally launches its own subshell to run its batch of processes safely.
+
+by default shell scripts will have shebang (#! /usr/bin/bash) and shell script will run in child process not sub shell

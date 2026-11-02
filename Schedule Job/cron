@@ -1,0 +1,63 @@
+Recurring User Jobs
+
+Schedule Recurring User Jobs
+
+Recurring Jobs are Scheduleed to run repeatedly
+
+Use crontab command to manage schedul Recurring Jobs
+
+RHEL systems provide crond daemon, which is enabled and started by default
+
+The crond daemon reads multiple configuration files: one per user and a set of syste-wide files. Each user has a personal file which they edit crontab -e command
+
+list of commands that a local user can use to manage their jobs
+
+crontab -l  ;list the jobs for current user
+crontab -r  ;remove all jobs for current user
+crontab -e  ;edit jobs for the current user
+crontab filename    ;remove all jobs and replace them with those read from filename. this command uses stdin input when no file is specified
+
+
+feilds in crontab file appear in the following order
+
+Minutes (0-59)
+Hours (0-23)
+Day of Month (1-31)
+Month (1-12)
+Day of week (0-6)
+command
+
+eg: 0932* /usr/local/bin/yearly_backup
+
+the command executes /usr/local/bin/yearly_backup command at exactly 9:00AM on 3 febraury, every year
+
+--------------------------------------------------------------------------------------
+
+Cron is a time-based job scheduling utility in Linux and Unix-like operating systems. It runs as a background service (known as a daemon named crond or cron) that automatically executes scheduled tasks, scripts, or commands at predefined times without manual user intervention.
+
+System administrators and developers primarily use cron to automate routine operations such as system backups, log rotation, software updates, and periodic data synchronization.
+
+
+1. How Cron Works Under the Hood
+
+• The Background Daemon: When a Linux system boots up, the initialization system (like systemd) starts the cron or crond daemon process.
+
+systemctl status crond 
+
+• The Minute-by-Minute Check: The daemon wakes up every 60 seconds to examine the configuration files where scheduled tasks are defined.
+• Time Matching: It compares the current system time against the rules set by the user. If a rule matches the system time exactly, it spawns a background sub-shell to execute the specified command.
+
+• Output Handling: 
+By default, if a command generates an output or an error, cron attempts to email it to the local system owner unless explicitly instructed to redirect it somewhere else. 
+If no mail system is configured, these details are typically discarded or routed to system logs var/log/cron.
+usually /var/log/cron.
+
+cron will use the permissions of the user who is scheduling the task to execute task background, so the user who is scheduling must have execute permissions to that command or file under execution schedule
+
+--------------------------------------------------------------------------------------
+Critical Pitfalls and Best Practices
+
+Many developers experience failing cron jobs despite writing syntactically correct crontabs. Keep these technical rules in mind:
+
+
+
