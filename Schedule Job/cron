@@ -112,6 +112,10 @@ crontab -r
 
 sudo crontab -u username -e
 
+ex: sudo crontab -u ec2-user -e
+
+current user can edit ec2-users crontab file
+
 -----------------------------------------------
 15 * * * * command
 Runs at minute 15 of every hour.
@@ -145,7 +149,52 @@ Multiple values.
 Runs at:
 09:00
 18:00
+
+0,5 5,6 4,5 * * command
+
+it runs every 0 and 5mins, 5AM and 6AM, on 4th and 5th of every month
 #can we use commands using comma
+No, commas are strictly used within the time fields to specify multiple execution times (for example, 0 9,12,15 * * * will run a job at 9 AM, 12 PM, and 3 PM). 
+
+If you use a comma in the command section cause an error
+
+To run multiple commands in a single crontab entry, you should use standard shell operators instead:
+1. Semicolon (;) – Run sequentially, regardless of success
+0 2 * * * /path/to/command1; /path/to/command2
+
+2. Double Ampersand (&&) – Run only if the previous command succeeds
+0 2 * * * /path/to/command1 && /path/to/command2
+
+3. Double Pipe (||) – Run only if the previous command fails
+0 2 * * * /path/to/command1 || /path/to/error-handling-command
+
+conflict in day of the month and day of the week, usually cron treat these feils as OR 
+
+In standard cron scheduling, fields usually act as an "AND" condition. For example, 0 5 * 2 * means "run at 5:00 AM AND only in February."
+
+However, the Day of the Month (DOM) and Day of the Week (DOW) fields are the only exception to this rule. When you restrict both fields, they create a logical conflict, and cron resolves it by switching from an "AND" condition to an "OR" condition.
+
+0 0 13 * 5 /path/to/command
+
+this script will run every month 13 and also every week Friday, because cron treats it under OR 
+
+cron sees 13 if the date is 13th it will execute and it will check (Day of week) if it is not 13th first one(day of month) fails and try to execute second one(Day of week) which 5, if that day is friday it will execute
+
+
+How to force an "AND" condition (e.g., Friday the 13th)
+
+if you want to execute the script on every month 13th and 13th should be friday, then only execute; use
+
+(meaning it must be both the date and the weekday), You do this by keeping the DOW as a wildcard in cron, and using a shell test inside the command field to check the weekday:
+
+0 0 13 * * [ $(date +\%u) -eq 5 ] && /path/to/command
+
+[ $(date +\%u) -eq 5 ] act as command
+/path/to/command act as command
+date +%u returns the day of the week as a number from 1 to 7
+
+[ $(date +\%u) -eq 5 ] ;if day of the week is friday then exit status 0, it will execute /path/to/command
+
 
 3. Hyphen (-)
 Range.
@@ -159,6 +208,9 @@ Runs hourly from 9 AM through 5 PM.
 
 4. Slash (/)
 Step value.
+operator is used to define step values (increments)
+
+*/5 means "every 5 units of time."
 
 */5 * * * *
 Runs every 5 minutes.
@@ -185,6 +237,9 @@ Advanced Examples
 
 Every 10 minutes during office hours
 */10 9-18 * * 1-5 /home/ec2-user/check.sh
+
+slash tells execute this at every interval of time or date
+hyphen tells execute this in a range of time or date
 
 09:00
 09:10
@@ -221,11 +276,15 @@ Runs after system boot.
 Yearly
 @yearly command
 
+i.e.. 12:00AM 1st of january every year
+
 Equivalent:
 0 0 1 1 *
 
 Monthly
 @monthly command
+
+i.e.. 12:00AM 1st of every month
 
 Equivalent:
 0 0 1 * *
@@ -233,11 +292,15 @@ Equivalent:
 Weekly
 @weekly command
 
+i.e.. 12:00AM every week Sunday
+
 Equivalent:
 0 0 * * 0
 
 Daily
 @daily command
+
+i.e.. 12:00AM daily
 
 Equivalent:
 0 0 * * *
@@ -247,6 +310,8 @@ Hourly
 
 Equivalent:
 0 * * * *
+
+i.e.. 1st minute of every hour, every day, every month
 
 --------------------------------
 Logging Cron Jobs
@@ -276,5 +341,3 @@ Troubleshooting
 Check cron logs
 
 grep CRON /var/log/cron
-
-
