@@ -142,3 +142,8 @@ fi
 #     echo "Processing: $line"
 # done < "users.txt"
 
+to run multiple commands in linux you can use semicolon(;), &&, ||
+
+semicolon(;) irrespective of exit status of first command, next command will be executed
+
+echo "Hello"; echo "Hi"

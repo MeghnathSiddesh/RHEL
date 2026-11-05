@@ -100,6 +100,35 @@ Edit your crontab: Opens the table in a text editor (like nano or vim). Saves ar
 
 crontab -e
 
+each user will have their own crontab file and only that user can edit crontab file and will be stored in /var/spool/cron
+each crontab file will be in the name of user
+
+command> crontab -e
+
+only root or the users sudo permission can edit other users crontab file, using below command
+
+crontab -u user_name -e
+
+ex: root user is modifying ec2-users crontab file
+crontab -u ec2-user -e
+
+[ec2-user@ip-172-31-7-169 /]$sudo crontab -u Meghnath -e
+
+here ec2-user have sudo permission he can edit user Meghnath crontab file
+
+similarly for crontab -l ;crontab -r;
+
+only the owner of the crontab file can list or delete the file that too using crontab command
+
+i.e.. other users cannot open the crontab file using : cat /var/spool/cron/<user_name> ; rm /var/spool/cron/<user_name>
+root user can do this :  cat /var/spool/cron/<user_name> ; rm /var/spool/cron/<user_name>
+
+except root user and user sudo permission can list and delete other users Files
+
+ex: crontab -u Meghanath -l
+ex: crontab -u Meghanath -r
+
+
 2)List your active cron jobs: Outputs your current schedule to the terminal window
 
 crontab -l
@@ -337,7 +366,38 @@ Good
 -------------------------------
 
 Troubleshooting
-
+--------------
 Check cron logs
 
-grep CRON /var/log/cron
+cat /var/log/cron
+
+this will show logs of all the cron jobs executing in this system, inclusing user jobs (/var/spool/cron) and system wide jobs(/etc/crontab)
+
+only root user or user having sudo permission can view this file cron (/var/log/cron)
+-----------------------------------
+check the crontab file which is username
+
+cat /var/spool/cron/<user_name>
+ex:
+cat /var/spool/cron/ec2-user
+it will open ec2-users crontab file
+one user can get only one crontab file
+
+if you want the useful output to store in one file and the errors should store in another file
+
+
+* * * * * command >> path_to_userful_logs.txt 2> path_to_errors_file.txt
+
+* * * * * ./script.sh >> /file.txt 2> /error.txt
+* * * * * echo "hello"; jhsuyfgviuagsyifuy >> /file.txt 2> /tmp/error.txt
+
+output will be stored in file.txt
+error will be stored in error.txt
+
+* * * * * echo "hello" >> /file.txt 2> /error.txt; jhsuyfgviuagsyifuy >> /file.txt 2> /error.txt
+
+here first commands output and error will be stored in file.txt and error.txt
+here second commands output and error will be stored in file.txt and error.txt
+-------------------------------------------
+
+a cron job cannot accept live manual input from a terminal while running, because cron runs completely in the background as a non-interactive daemon

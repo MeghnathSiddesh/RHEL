@@ -1,1 +1,24 @@
 learn systemd completely
+
+The init system (short for "initialization") is the very first process started by the Linux kernel during boot. It runs in the background until the machine is shut down, acts as the parent or ancestor of all other user processes, and is permanently assigned Process ID 1 (PID 1).
+
+If the kernel cannot find the init system, or if PID 1 crashes, the system will suffer a "kernel panic" and crash immediately.
+
+
+What Does the Init System Do?
+
+Its primary job is to bring the computer from a bare-bones kernel state into a usable operating system. It does this by managing:
+• Service Management: Starting, stopping, and monitoring essential background services (daemons) like networking, logging, SSH, and display managers.
+• Process Adoption: Adopting "orphan processes"—user applications whose original parent processes died—to prevent resource leaks.
+• System State: Handling system transitions like reboots, shutdowns, and user logins.
+
+Major Init System in Linux
+
+systemd (Modern Standard)
+Ubuntu, Debian, Fedora, Arch, Red Hat, etc.
+Monolithic ecosystem; manages logging, networks, timers, and devices
+
+
+How to Check Your Init System
+ps -p 1 -o comm=
+systemd

@@ -1,0 +1,79 @@
+Forking, a main process, and a background process are foundational concepts of how Linux manages programs, multitasking, and system resources.
+
+2. Main Process (Foreground / Primary Process)
+
+A main process (often referred to in the context of a foreground process or primary application loop) is a process that directly interacts with the user and ties up the terminal or shell from which it was launched.
+• Behavior: When you run a standard command or application in a terminal (like vim, nano, or a python script), it runs in the foreground. It captures your keyboard input and sends its output (stdout/stderr) straight to your screen.
+• Control: Your terminal prompt waits until the main process finishes or is stopped. You can suspend it using Ctrl + Z or terminate it using Ctrl + C.
+
+
+3. Background Process
+
+A background process is a task that runs independently of direct user interaction in the terminal.
+• Behavior: It runs silently (or writes logs to a file/terminal without blocking your ability to type new commands).
+
+• How to start one:
+	• You can launch a command directly into the background by appending an ampersand (&) at the end of it 
+    (e.g., long_script.sh &).
+
+	• You can send an already running foreground process to the background by pressing Ctrl + Z to pause it, and then typing bg to resume it in the background.
+
+• Managing them: 
+   You can view active background jobs using the jobs command 
+   bring any of them back to the foreground using fg [job_number]. 
+   (Note: True system services that run detached from any terminal are a special class of background processes called daemons, which are often spawned via forking).
+
+   A standard "background process" is simply any task running out of sight they use users permission who ran it
+   (for instance, running a command with & at the end). 
+   
+A daemon is a specialized version. They traditionally run with system-level privileges, start automatically when the computer boots up, and remain dormant in the memory until a specific event triggers them to act.
+
+
+-------------------------
+Spawned via Forking
+
+"Forking" is how an operating system creates new processes. During a process called daemonization, the system uses a clever workaround to disconnect the process from the user:
+1. A parent process launches and immediately calls a system function to make an exact copy of itself (the child process).
+2. The parent process purposefully terminates (exits) immediately.
+3. The terminal thinks the program has finished running and returns control to the user.
+4. Meanwhile, the child process is left "orphaned," gets adopted by the operating system's core initialization process (init or systemd), establishes its own independent session, and safely runs in the background forever.
+
+
+1. Forking (fork())
+
+Forking is a system call in Linux (and Unix-like operating systems) that creates a new process by duplicating an existing one.
+• How it works: When a running program calls fork(), the Linux kernel makes an almost exact copy of the calling process.
+• Parent and Child: The original process is called the parent process, and the newly created duplicate is called the child process.
+• Return values: Both processes continue running right after the fork() call, but they receive different return values:
+	• The child receives 0.
+	• The parent receives the Process ID (PID) of the child.
+
+
+Step-by-Step: What happens during a Fork?
+
+1. The Split: A program executes a special command called fork().
+2. The Clone: The Linux operating system instantly copies the program's memory, variables, and current position in the code.
+3. The Twin Execution: Suddenly, there are two identical programs running at the exact same line of code simultaneously.
+4. The Identity Check: To keep them from doing the exact same thing forever, Linux gives them a small clue so they know who is who:
+	• The Child process looks at its hand and sees the number 0. It says, "Ah, I am the child. I will go do the new task."
+	• The Parent process looks at its hand and sees a specific ID number (the child's Process ID). It says, "Ah, I am the parent. I will keep monitoring the system."
+
+
+
+Why do we use it?
+
+Linux uses forking for almost everything. For example, when you type a command like ls or mkdir in your terminal:
+1. Your terminal forks (clones) itself.
+2. The clone (child) immediately transforms itself into the ls or mkdir program.
+3. The original terminal (parent) waits for the child to finish so it can give you your prompt back.
+
+
+Example 1: The Real-World Scenario (A Web Server)
+
+Imagine you run a popular website. When a user clicks a link, your web server has to process their request.
+1. The Parent Process sits and listens for incoming traffic.
+2. A user connects.
+3. Instead of handling the user itself (which would make other users wait), the parent forks (clones) itself.
+4. The Child Process takes over that specific user's request, loads the webpage, and sends it to them.
+5. The Parent Process immediately goes back to listening for the next user.
+If the child process crashes because of a bug on that specific webpage, the parent survives and the website stays online for everyone else.

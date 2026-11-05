@@ -5,12 +5,19 @@ Unlike regular user crontabs, system-wide crontabs can execute tasks as any user
 
 1. The Main File: /etc/crontab
 
+only root user or user with sudo permission can access this /etc/crontab file and schedule system wide jobs
+you cannot use directly crontab command to edit, list, delete this file
+you need to visit /etc/crontab and open this crontab file and write the jobs
+
 This is the primary configuration file for system-wide automation. It differs from a standard user crontab in one critical way: it includes a user column.
 A traditional user crontab uses 5 time fields followed by the command:
 * * * * * /path/to/command
 The /etc/crontab file requires 5 time fields, the username, and then the command:
 * * * * * root /path/to/command
 
+so only root user or user having sudo permission can edit the crontab file, so only he can schedule jobs as any user in this file
+
+/etc/crontab is not a directory, it is a file, so once you lost this file that it
 This file is reserved for core system maintenance. A typical /etc/crontab file contains environmental variables at the top and system-wide tasks at the bottom. Notice the mandatory username field (root) before the command.
 
 ex:
@@ -33,6 +40,10 @@ Format: Files placed inside /etc/cron.d/ must follow the exact same syntax as /e
 
 When you install third-party software like a web server (Apache/Nginx) or a database (MySQL), they drop a standalone file here. Let's look at a fictional file named /etc/cron.d/certbot (used for renewing SSL certificates):
 
+/etc/crontab is not a directory, it is a file, so once you lost this file that it
+
+here /etc/cron.d/ you can create files specific to the application requirements and write jobs in each file created
+
 ex:
 # /etc/cron.d/certbot
 
@@ -45,10 +56,10 @@ ex:
 If you have a script that needs to run periodically, but you don't care about the precise minute or second it triggers, you can use these directory "shortcuts".
 
 Instead of writing a complex time schedule, you simply place an executable script inside one of these folders:
-• /etc/cron.hourly/: Runs scripts once every hour.
-• /etc/cron.daily/: Runs scripts once a day.
-• /etc/cron.weekly/: Runs scripts once a week.
-• /etc/cron.monthly/: Runs scripts once a month.
+• /etc/cron.hourly/: you can create a file and write jobs here, Runs scripts once every hour.
+• /etc/cron.daily/: you can create a file and write jobs here, Runs scripts once a day.
+• /etc/cron.weekly/: you can create a file and write jobs here, Runs scripts once a week.
+• /etc/cron.monthly/: you can create a file and write jobs here, Runs scripts once a month.
 How they work: The system uses a tool called anacron (or a routine entry in /etc/crontab) to look into these folders and execute the scripts sequentially.
 
 We need system-wide crontabs because standard user crontabs are designed only for individual user accounts, making them fundamentally incapable of managing an operating system
@@ -85,4 +96,6 @@ Instead, the /etc/cron.d/ directory provides a perfectly clean solution:
 4. Simplified "Time-Insensitive" Scheduling
 
 Sometimes, you just want a script to run "once a day," and you don't care about the exact minute or hour.
-System-wide interval directories (/etc/cron.daily/, /etc/cron.weekly/) allow you to just drop a script into a folder. This completely removes the risk of "cron syntax errors" (like miscounting asterisks), ensuring that essential scripts execute reliably without micro-management.
+System-wide interval directories (/etc/cron.daily/, /etc/cron.weekly/) allow you to just drop a script into a folder. This completely removes the risk of "cron syntax errors" (like miscounting asterisks), ensuring that essential scripts execute reliably without micro-management
+
+Regular user cannot create or modify files inside /etc/cron.d/, /etc/cron.daily/, /etc/cron.hourly/, /etc/cron.weekly/, /etc/cron.monthly/

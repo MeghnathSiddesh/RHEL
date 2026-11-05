@@ -1,0 +1,379 @@
+systemd service file configuration (usually found in /etc/systemd/system/).
+systemd service file, used to manage background processes (daemons) in Linux.
+
+
+.service file is a plain-text configuration file that tells systemd how to manage, monitor, and run a specific background process or application (a daemon). It acts as a declarative script, replacing older, complex SysV init shell scripts with clean, predictable blocks of settings.
+
+
+📂 Where .service Files Live
+
+Systemd looks for service files in three main directories, depending on who created them:
+• /lib/systemd/system/ (or /usr/lib/...): Package-managed services. When you install a program like Nginx or Docker via apt or dnf, its default service file goes here. Do not edit files here directly.
+• /etc/systemd/system/: Custom or overridden services. This is where you place your own custom service files or system administrator overrides. Files here have the highest priority and will override anything in /lib/.
+• /run/systemd/system/: Runtime services. Dynamic, temporary services generated on the fly at runtime (wiped out on reboot).
+
+
+when you use systemd, it manages your program(execstart in .service file) so it runs as a daemon (background service) in the system. However, how systemd tracks and monitors that daemon depends entirely on the Type= setting.
+
+When systemd treats a process as the "main process" (which happens by default when Type=simple), it means systemd keeps a direct, unblinking eye on the exact program it launched.
+
+
+How it runs as the "Main Process" (Type=simple)
+
+In a standard systemd service, the process runs as the main process through a straightforward chain of events:
+
+[systemd (PID 1)] 
+       │
+       ▼ 
+[Your Program (e.g., Python script/Binary)] <─── systemd watches THIS PID directly as the "Main Process"
+
+1. Direct Launch: When you run systemctl start yourservice, systemd directly spawns the program defined in ExecStart=.
+2. Immediate Ownership: Systemd looks at the Process ID (PID) of that newly launched program and notes it down: "This specific PID is the Main Process."
+3. Continuous Monitoring: Because it is the main process, systemd ties the lifetime of the service directly to it.
+	• If your program is running, the service status is active (running).
+	• If your program exits or crashes, systemd instantly knows it, changes the status to inactive or failed, and triggers a restart if configured to do so.
+In this mode(type=simple), your program must not try to put itself into the background (it shouldn't daemonize or clone itself). It should just run normally, and let systemd handle keeping it in the background of the system.
+
+-----------------------
+
+If your program is traditional software (like Apache or Nginx) that is coded to automatically clone itself into the background when it starts, a default systemd setup breaks. Here is what happens if you don't use Type=forking for those programs:
+1. Systemd launches the program (ExecStart).
+2. The program immediately forks itself to become a background daemon and closes its original starter process.
+3. Systemd sees the original starter process close and thinks: "Oh, the main process just exited! The service must be finished or broken."
+4. Systemd will then aggressively kill off the child process (the actual daemon you wanted) because it thinks the service is stopping.
+Setting Type=forking tells systemd: "Expect this program to clone itself. Wait for the starter process to exit, then look for the child it left behind, and treat that child as the new Main Process."
+
+when type=simple :The exact, original process spawned by ExecStart. It must stay alive in the foreground of its own environment.
+
+Type=forking :The child process left behind after the original ExecStart process exits.	
+Traditional Linux software (Nginx, MySQL) designed to daemonize themselves.
+
+
+--------------------------
+
+Main process means, not only the process which is attached to terminal and gives you output when you type a command(this also created child process(fork()) while fetching from kernel)
+
+the actual meaning of main process is first process of a program, if it creates child process(it is child process)
+
+
+-------------------------------------
+systemd service configuration file
+
+[Unit]
+Description=My Custom Web Server
+After=network.target
+
+[Service]
+Type=simple
+# The exact command systemd will run:
+ExecStart=/usr/bin/python3 /opt/myapp/server.py --port 8080
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
+explanation : 
+
+📝 Structure of a .service File
+
+A service file uses three essential sections: [Unit], [Service], and [Install].
+
+[Unit]
+Description=My Custom Python Web App
+After=network.target
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=webappuser
+WorkingDirectory=/var/www/myapp
+ExecStart=/usr/bin/python3 /var/www/myapp/app.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+
+
+1. The [Unit] Section
+
+This section defines metadata about the service and establishes its position in the boot order or dependency graph.
+
+• Description=: A friendly, readable name for the service shown when running systemctl status.
+
+•(optional)After=: Defines ordering. It tells systemd to wait until the listed resource (like network.target) is up before starting this service.
+
+•(optional)Requires=: Defines a strict dependency. If the listed service (like postgresql.service) fails to start, your service will fail to start too.
+
+•(optional) Wants=:A loose dependency. Systemd will attempt to start the listed service alongside yours, but won't crash your service if that one fails.
+
+
+
+
+2. The [Service] Section
+
+This section configures the core execution behavior—how to run, track, and secure the process.
+
+• Type=: Configures the startup notification style.
+	• simple (default): Assumes the process starts immediately and stays in the foreground.
+
+	• forking: Used for traditional daemons that spin off a background child process and exit the parent process.
+       oneshot: the script performs a single task and then exits, rather than running continuously in the background like a web server
+• User= & Group=: The Linux user account that should execute the app, following the principle of least privilege.
+
+• ExecStart=: The exact absolute path to the command or binary that launches your program.
+------------
+*) ExecStart command 
+
+specifies the exact command and arguments to execute when starting a service
+It tells systemd exactly which binary, script, or program to run to get the application up and running.
+
+ExecStart sits under the [Service] block:
+
+Key Characteristics of ExecStart
+
+• Requires Full Paths: systemd does not read your user shell profile or $PATH variables. You must always provide the absolute path to the executable (e.g., /usr/bin/python3 instead of just python3).
+
+• Defines the Main Process: Unless configured as a background/forking process (Type=forking), the process launched by ExecStart is treated by the system as the main process of that service.
+
+• Strict Constraints: For standard services, exactly one ExecStart directive is allowed. The only exception is when Type=oneshot is specified, which allows you to list multiple ExecStart lines that run sequentially.
+
+you can put a command or multiple commands or script file to execute when systemd starts this .service file
+--------------
+• Restart=: Tells systemd when to auto-revive the app. always means systemd will restart it if it crashes, gets killed, or exits cleanly.
+
+• RestartSec=: How long systemd should wait before attempting a restart.
+
+
+3. The [Install] Section
+
+This section dictates when the service(.service file) should activate relative to the system's boot cycle, used when you type systemctl to enable this service.
+• WantedBy=: Links this service to a specific milestone target. multi-user.target is the standard target for a normal, non-graphical terminal environment (similar to Runlevel 3 in old SysV init). When you enable the service, it hooks into this target so it boots automatically on startup.
+
+------------
+install section in depth :
+
+The [Install] section does absolutely nothing when a service is actively running.
+
+[Install] is purely a set of instructions used by the systemctl enable command to figure out how to hook this service into the Linux boot process so that it starts automatically when the computer turns on.
+
+🗺️ The Concept: Linux Booting is a Chain Reaction
+When your Linux computer boots up, systemd doesn't just start everything at once in a chaotic scramble. It follows a structured dependency tree made of Targets.
+Think of a "Target" as a milestone or a room in a house:
+1. First, the system hits local-fs.target (hard drives are mounted).
+2. Then, it hits network.target (the internet/network card is ready).
+3. Finally, it reaches multi-user.target (the system is fully booted, online, and ready for multiple users to log in).
+
+The [Install] section is how your service file says: "Hey systemd, when you reach milestone X during boot, please make sure you pull me into the sequence and start me up too."
+
+
+🔍 How it Works Under the Hood (Symbolic Links)
+
+When you type: sudo systemctl enable myapp.service, 
+
+systemd reads the [Install] section of your file.
+If your file looks like this:
+
+[Install]
+WantedBy=multi-user.target
+
+Systemd translates WantedBy=multi-user.target into a literal file system command. It goes to the folder for that milestone (/etc/systemd/system/multi-user.target.wants/) and creates a symbolic link (a shortcut) pointing back to your service file.
+
+📁 /etc/systemd/system/multi-user.target.wants/
+   └── 🔗 myapp.service  ---> (Points back to your actual service file)
+
+Now, the next time the computer boots up and systemd processes the multi-user.target milestone, it looks inside that .wants/ folder, sees the shortcut to your service, and launches it.
+If you run sudo systemctl disable myapp.service, systemd simply deletes that shortcut. The service file remains intact, but it will no longer start at boot.
+
+🛠️ Common Directives Inside [Install]
+
+• WantedBy=multi-user.target: The most common. It means "start my service when the system is fully booted into normal terminal mode."
+• WantedBy=graphical.target: Means "start my service only after the graphical desktop interface (like GNOME or KDE) has successfully loaded."
+• WantedBy=timers.target: Used inside .timer files to ensure the system timer engine starts tracking your scheduled events at boot.
+-------------------------------------------
+
+instead of install section, you can also use .timer file to trigger this .service when to run
+you can define time here when to run
+
+# IMPORTANT: Tell systemd to reload its memory configuration after editing a file
+sudo systemctl daemon-reload
+
+# Start/Stop/Restart the service immediately
+sudo systemctl start myapp.service
+sudo systemctl stop myapp.service
+sudo systemctl restart myapp.service
+
+# Enable the service to launch automatically during system boot
+sudo systemctl enable myapp.service
+
+# View live health status, process ID (PID), and the latest log lines
+sudo systemctl status myapp.service
+
+
+---------------
+
+.timer
+
+ you create two separate files in /etc/systemd/system/ with matching names (e.g., backup.timer and backup.service).
+
+ 1. The Service File (/etc/systemd/system/backup.service)
+
+ This file only defines what to run. Because it relies on the timer, it does not need an [Install] section.
+
+ [Unit]
+Description=Run My Custom Backup Script
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/my-backup-script.sh
+
+(Note: Type=oneshot is perfect here because the script performs a single task and then exits, rather than running continuously in the background like a web server).
+
+
+2. The Timer File (/etc/systemd/system/backup.timer)
+This file defines when to run. By default, systemd looks for a service file with the exact same prefix name (e.g., backup.timer triggers backup.service).
+
+[Unit]
+Description=Trigger the Backup Script every hour
+
+[Timer]
+# Option A: Monotonic (relative time)
+OnBootSec=15min
+OnUnitActiveSec=1h
+
+# Option B: 
+# Real-time/Calendar (like a traditional cron job)
+# OnCalendar=*-*-* 02:00:00
+
+[Install]
+WantedBy=timers.target
+
+
+⏱️ Key Timer Settings to Know
+
+Inside the [Timer] section, you have two primary ways to schedule your service:
+• Monotonic Timers (Relative Time): These trigger relative to system events.
+	• OnBootSec=: How long after the machine boots up to trigger the service for the first time.
+	• OnUnitActiveSec=: How long to wait after the service was last activated. This creates a continuous loop (e.g., run every 1 hour).
+• Real-time Timers (Calendar Time): These function like traditional Linux cron jobs using the OnCalendar= directive.
+	• OnCalendar=daily: Runs once a day at midnight.
+	• OnCalendar=Mon,Tue *-*-* 18:30:00: Runs at 6:30 PM every Monday and Tuesday.
+
+
+⚙️ How to Activate It
+
+When using this pattern, you never enable the service. Instead, you enable and start the timer unit.
+
+(note: when you enable something (.service , .timer) using systemctl, the systemd reach out to .target file mentioned inside [install] sectioncreate a link (a shortcut) (/etc/systemd/system/multi-user.target.wants/) pointing back to your configuration file(.service, .timer) file based)
+
+# Reload systemd to recognize the new files
+sudo systemctl daemon-reload
+
+# Enable and start the TIMER (not the service)
+sudo systemctl enable --now backup.timer
+
+# Check the status of your timer
+sudo systemctl status backup.timer
+
+# View all active timers and see exactly when they will run next
+systemctl list-timers
+
+Using a .timer file provides built-in logging via journalctl
+
+
+
+
+
+------------------------------------------------------------------------------------------------
+
+Logging and troubleshooting in systemd service configuration
+
+In systemd, logging and troubleshooting are deeply integrated. Systemd captures everything a service sends to standard output (stdout) and standard error (stderr) automatically, routing it to a centralized logging system called the journal.
+
+Because of this unified design, you don't have to hunt down scattered log files in /var/log/ to find out why a service failed.
+
+
+🪵 1. The Core Tool: journalctl
+
+journalctl is the command-line utility used to query and view systemd logs. To troubleshoot a specific service, you will heavily rely on filtering options.
+
+Essential Troubleshooting Filters
+
+View live logs (Follow mode ):
+sudo journalctl -u myapp.service -f
+
+Show logs since the last boot:
+sudo journalctl -u myapp.service -b
+
+Show logs within a specific time window:
+sudo journalctl -u myapp.service --since "1 hour ago"
+sudo journalctl -u myapp.service --since "2026-11-05 12:00:00" --until "2026-11-05 13:00:00"
+
+
+🚨 2. The 3-Step Troubleshooting Workflow
+
+When a systemd service enters a failed state, follow this standard sequence to diagnose it:
+
+Step 1: Check the Status Summary
+
+Run systemctl status myapp.service. This gives you an immediate bird's-eye view.
+• Look at the Active: line. If it says failed (Result: exit-code), systemd tried to run it, but the application crashed.
+• Look at the Main PID. This tells you the active process ID.
+• Read the last 10 log lines printed at the bottom of this status screen. They often contain the direct error message (e.g., "Permission denied" or "Port already in use").
+
+Step 2: Read the Full Journal Context
+
+If the 10 lines at the bottom of the status screen aren't enough, open the complete log history for that unit:
+
+sudo journalctl -u myapp.service -n 50 --no-pager
+
+
+Step 3: Validate File Syntax
+If your service refuses to load at all when you run systemctl daemon-reload, you likely made a typo in the .service file. Check it using the linting tool:
+
+systemd-analyze verify /etc/systemd/system/myapp.service
+
+This command checks for misspellings, missing absolute paths, or broken structural logic inside your configuration file before you try to start it.
+
+
+💡 Common Service Failures & Quick Fixes
+
+1. "Executable path is not absolute"
+	• The Cause: You wrote ExecStart=python3 app.py.
+	• The Fix: Systemd does not search your user $PATH. You must use full absolute paths: ExecStart=/usr/bin/python3 /var/www/app.py.
+2. "Permission Denied" / Code 217/USER
+	• The Cause: You specified User=webappuser, but that user doesn't have read/execute permissions for the directory containing the application binary or script.
+	• The Fix: Check directory permissions with ls -la or verify the user actually exists on the system.
+3. Process exits immediately / Code 0/SUCCESS
+	• The Cause: Your service file uses Type=simple (default), but the script you ran backgrounded itself (forked). Systemd thinks the application finished its job and shuts down the unit tracking.
+	• The Fix: Change the configuration to Type=forking or configure your application binary to run strictly in the foreground.
+
+----------------------------------------------------------------------------
+
+Passing credentials or secrets to script or command inside .service configuration file
+
+The most secure way to pass sensitive information like passwords or API keys to a background daemon service is by using environment variables or dedicated secret management tools, rather than hardcoding them or passing them as command-line arguments.
+
+Because background daemons run continuously and often start automatically at system boot, how you inject these secrets depends on your operating system and deployment environment.
+
+
+1. Environment Variables via Init Systems (Recommended for Linux)
+
+If your daemon(.service) is managed by a system init system like systemd, you should inject secrets as environment variables using secure configuration files.
+• How it works: You define the variables in a file that is heavily restricted using file permissions (chmod 600 or 400), ensuring only root or the specific daemon user can read it.
+• Systemd Example:
+	1. Create a file at /etc/daemon-secrets.env
+
+	API_KEY=your_actual_api_key_here
+	DB_PASSWORD=your_secure_password
+
+2. Restrict access so only the root/service owner can read it: chown root:root /etc/daemon-secrets.env && chmod 600 /etc/daemon-secrets.env
+
+3. In your systemd service file (/etc/systemd/system/mydaemon.service), use the EnvironmentFile directive:
+
+[Service]
+User=daemonuser
+EnvironmentFile=/etc/daemon-secrets.env
+ExecStart=/usr/bin/mydaemonexecutable
+
+--------------------------------------------

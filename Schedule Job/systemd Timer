@@ -1,0 +1,178 @@
+Systemd Timer
+
+IN RHEL 7, the introduction of systemd brought new feature called systemd timer units. these timer units trigger another unit, like a service, whose name corresponds to the timer unit's name. the timer units allow timer based activation of other units. for easier debugging, systemd logs timer events in system journals
+
+the sysstat package provides a systemd timer unit called sysstat-collect.timer to collect statistics every 10minutes
+
+A systemd timer is a modern Linux utility used to schedule tasks and automate scripts. It serves as the primary native alternative to the traditional cron utility on modern, systemd-based Linux distributions.
+Unlike cron, which directly runs a command at a set time, a systemd timer works as an "alarm clock" that triggers a separate systemd service, which then executes the actual task.
+
+How it Works: The Two-File Pairing
+
+To set up a systemd timer, you must create two distinct files in /etc/systemd/system/ that share the exact same base name:
+1. The Service File (.service): Defines what command or script to run.
+2. The Timer File (.timer): Defines when or how often to run it.
+
+Step 1: Create the Service (/etc/systemd/system/myjob.service)
+systemd service file configuration
+
+This is a standard service file, usually configured as a oneshot type since scheduled tasks typically run and finish.
+
+init
+[Unit]
+Description=My Automated Backup Script
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/mybackup.sh
+Use code with caution.
+
+
+Key Characteristics of ExecStart
+
+• Requires Full Paths: systemd does not read your user shell profile or $PATH variables. You must always provide the absolute path to the executable (e.g., /usr/bin/python3 instead of just python3).
+• Defines the Main Process: Unless configured as a background/forking process (Type=forking), the process launched by ExecStart is treated by the system as the main process of that service.
+• Strict Constraints: For standard services, exactly one ExecStart directive is allowed. The only exception is when Type=oneshot is specified, which allows you to list multiple ExecStart lines that run sequentially.
+
+another example:
+
+
+Step 2: Create the Timer (/etc/systemd/system/myjob.timer)
+
+The timer file links to the service by name automatically and holds the schedule.
+ini
+[Unit]
+Description=Run My Automated Backup Script Daily
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+Use code with caution.
+
+Types of Schedules
+
+Systemd timers allow for two powerful types of scheduling:
+1. Realtime Timers (Wall-clock): These trigger tasks at specific dates or calendar times, exactly like cron.
+	• Example: OnCalendar=Mon..Fri *-*-* 10:00:00 (Runs every weekday at 10:00 AM).
+2. Monotonic Timers: These trigger tasks relative to system events or time elapsed, which cron cannot naturally do.
+	• OnBootSec=15min (Runs 15 minutes after the system boots).
+	• OnUnitActiveSec=1h (Runs 1 hour after the last time the service was activated).
+
+Key Advantages Over Cron
+
+
+Feature	Systemd Timers	Traditional Cron
+Missed Job Recovery	Yes (Persistent=true). If the PC was powered off during the scheduled time, it catches up immediately upon boot.	No. (Requires a separate utility like anacron).
+Logging & Debugging	Centralized. All execution output and errors are captured neatly in journalctl.	Fragmented. Outputs are either emailed locally or buried in /var/log/syslog.
+Dependencies	Yes. You can make a timer wait until a network connection or specific service is active.	No. Cron fires blindly, regardless of the system's state.
+Resource Control	Granular. Easily restrict CPU, RAM, or I/O priority for the task using standard systemd directives.	Complex. Requires prefixing commands with utilities like nice or ionice.
+
+
+Essential Commands for Managing Timers
+
+Once you write or modify your unit files, you control them using systemctl:
+• Reload the systemd daemon (do this every time you create/edit a file):bash
+sudo systemctl daemon-reload
+Use code with caution.
+• Enable and start the timer (always start the .timer, not the .service):bash
+sudo systemctl enable --now myjob.timer
+Use code with caution.
+• Check the status of a specific timer:bash
+systemctl status myjob.timer
+Use code with caution.
+• View all active timers and see exactly when they will run next:bash
+systemctl list-timers
+Use code with caution.
+If you'd like to implement this on your machine, tell me:
+• What script or command you are trying to automate?
+• What exact schedule do you want to set up (e.g., specific time, interval, or upon boot)?
+I can generate the copy-pasteable files customized for your exact task.
+• 
+SUSE Documentation
+Working with systemd Timers - SUSE Documentation
+systemd timers support the following features: * Jobs scheduled using a timer unit can depend on other systemd services. Timer uni...
+• 
+ArchWiki
+systemd/Timers
+# systemd/Timers Timer units Timers are systemd unit files with a suffix of . timer. Timers are like other unit configuration file...
+• 
+Opensource.com
+Use systemd timers instead of cronjobs | Opensource.com
+7 Jul 2020 — Like cron jobs, systemd timers can trigger events—shell scripts and programs—at specified time intervals, such as once a day, on a...
+Show all
+                
+       
+explain myjob.timer file
+
+which are the things we can acheive using this
+
+
+Breaking Down the myjob.timer File
+
+The .timer file acts as the configuration brain for your schedule. It tells systemd exactly when and how to trigger your corresponding .service file.
+Here is exactly what each section and line means inside the template:
+ini
+[Unit]
+Description=Run My Automated Backup Script Daily
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+Use code with caution.
+• [Unit] Section: This provides metadata about the timer. The Description is just a human-readable label that shows up when you run commands like systemctl status or check system logs.
+• [Timer] Section (The Core Logic):
+	• OnCalendar=daily: This sets a calendar-based schedule. The shorthand daily means the task will attempt to run every single day at midnight (00:00:00).
+	• Persistent=true: This is a powerful safety net. If your computer was powered off or asleep at midnight when the timer was supposed to fire, setting this to true tells systemd to run the missed job immediately as soon as the system turns back on. If set to false, the missed event is simply skipped.
+• [Install] Section: Defines how the timer is activated when you run systemctl enable. WantedBy=timers.target tells the system to automatically load and start this timer whenever the computer boots up into its normal operating state.
+(Note: Because the file is named myjob.timer, systemd automatically looks for a service named myjob.service to run. If you wanted to trigger a service with a different name, you would add a line like Unit=different-name.service inside the [Timer] block).
+
+What You Can Achieve Using Systemd Timers
+
+Systemd timers give you precise control over automation. Because they integrate deeply with the Linux operating system, you can build automation workflows that traditional cron jobs cannot handle.
+
+1. Precision Calendar Scheduling
+
+You can schedule events down to the exact second, specific days of the week, or unique calendar milestones:
+• Run a database cleanup on the first Monday of every month (OnCalendar=Mon *-*-01..07 02:00:00).
+• Trigger an inventory report every weekday, twice a day, exactly at 9:30 AM and 4:30 PM (OnCalendar=Mon..Fri *-*-* 09,16:30:00).
+
+2. Event-Driven & Relative Automation (Monotonic)
+
+Instead of relying on the clock, you can trigger tasks based on how much time has passed since system events:
+• Post-boot delays: Run a diagnostic tool exactly 5 minutes after the system finishes booting (OnBootSec=5min), ensuring it doesn't slow down your boot speed.
+• Chained intervals: Run a synchronization script exactly 15 minutes after the last time the script successfully finished running (OnUnitInactiveSec=15min).
+
+3. Intelligent Resource Guardrails
+
+You can prevent automated tasks from lagging your server or freezing your desktop:
+• CPU & Memory capping: You can tell systemd to run a resource-heavy video transcoding script, but strictly limit it to using a maximum of 2 CPU cores or 2GB of RAM.
+• Disk priority: Force a heavy file-indexing task to only read/write to the hard drive when the rest of the system is idle (IOSchedulingClass=idle).
+
+4. Conditional Automation (Network & Hardware Awareness)
+
+You can make a schedule "smart" so it only fires if specific conditions are met:
+• Network dependency: Only run a cloud-backup timer if the system actually has an active internet connection.
+• Battery protection: Prevent a heavy background task from starting if a laptop is currently unplugged and running on battery power.
+
+5. Randomized Start Times (Fuzzy Scheduling)
+
+If you manage hundreds of Linux servers, having them all pull an update at exactly 3:00 AM can crash your network. By adding AccuracySec=1h or RandomizedDelaySec=30m, systemd will automatically randomize the exact start time within a specific window, beautifully spacing out the load on your network or hardware.
+
+
+-------------------------------------------------------------------------------
+
+SAR data collection
+
+sar -u 1 2
+
+sar -u -f /var/log/sa/sa16
+
+sar -D -f /var/log/sa/sa16
+
+----------------

@@ -1,0 +1,10 @@
+temporary data in linux 
+
+a lot of applications which is running in linux need temporary directory or filesystem to hold temporary data
+while others they use user spescific volatile(in memory) directories that is under /run
+
+when system rebooted these /tmp and /run data under this is lost
+
+RHEL 7 and later versions includes a new tool systemd-tmpfiles, which provides a structured and configurable method to manage temporary directories and files
+
+
