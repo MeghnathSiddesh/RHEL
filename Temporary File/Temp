@@ -7,4 +7,62 @@ when system rebooted these /tmp and /run data under this is lost
 
 RHEL 7 and later versions includes a new tool systemd-tmpfiles, which provides a structured and configurable method to manage temporary directories and files
 
+In Red Hat Enterprise Linux (RHEL), systemd-tmpfiles is the core utility used to manage temporary files and volatile directories. It handles their creation, owner/permission assignments, and periodic cleanup automatically, ensuring the system filesystem does not run out of space.
+
+
+⚙️ How it Works Under the Hood
+
+The systemd-tmpfiles utility operates through specific systemd services and timers:
+• On Boot (systemd-tmpfiles-setup.service): Runs systemd-tmpfiles --create --remove to initialize required system volatile directories and files.
+• Scheduled Cleanup (systemd-tmpfiles-clean.timer): A daily timer that triggers systemd-tmpfiles-clean.service to execute systemd-tmpfiles --clean. This parses your age-based rules and deletes expired data.
+
+
+📂 Configuration File Locations
+
+systemd-tmpfiles reads configuration files ending in .conf. Never edit files in /usr/lib/ directly, as updates will overwrite them. Instead, use /etc/tmpfiles.d/ for your custom entries:
+
+Path	Purpose	    Priority
+/etc/tmpfiles.d/*.conf	Administrator custom rules (Use this)	Highest (Overrides distribution defaults)
+/run/tmpfiles.d/*.conf	Runtime configurations created dynamically	Medium
+/usr/lib/tmpfiles.d/*.conf	Distribution-provided rules (packaged by vendors)	Lowest
+
+
+
+Lowest
+
+
+📝 Configuration File Syntax
+
+Rules inside a .conf file use the following structured format:
+# Type  Path                    Mode  User  Group  Age  Argument
+d       /run/myapp/locks        0755  root  root   -    -
+d       /var/cache/myapp/tmp    0700  appuser appuser 7d   -
+
+
+Key Fields Breakdown:
+
+1. Type (Action): Tells systemd what to do with the target path.
+	• d: Create a directory if it doesn't exist, and clean up its contents based on the Age field.
+	• D: Create or empty a directory, and remove all contents during boot/cleanup.
+	• e: Clean up an existing directory's contents based on age (does not create the directory).
+	• f: Create a file if it doesn't exist.
+	• x: Exclude a path from cleanup rules. (Handy for protecting specific files in /tmp).
+2. Path: The absolute path to the directory or file.
+3. Mode: File permissions (e.g., 0755 or 0700). Use - to inherit or leave defaults.
+4. User & Group: The owner and group ownership assignments.
+5. Age: The expiration threshold before a file is targeted for deletion.
+	• Supported suffixes: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+	• Use - if you never want the system to automatically purge this path.
+
+🚀 Step-by-Step Implementation
+
+
+Step 1: Create a Custom Rule File
+
+Create a new file under /etc/tmpfiles.d/. For example, to manage a custom application scratch space:
+sudo vi /etc/tmpfiles.d/custom-app.conf
+
+Add a rule to manage a directory that deletes files older than 5 days:
+# Type  Path               Mode  User     Group    Age  Argument
+d       /var/tmp/custom-app 0755  appuser  appuser  5d   -
 

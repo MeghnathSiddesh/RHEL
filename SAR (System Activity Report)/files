@@ -1,0 +1,33 @@
+The sysstat package installs its files across several standard directories on Red Hat Enterprise Linux (RHEL). The main user executables (like sar, iostat, and mpstat) are installed in /usr/bin/.
+
+Here is a breakdown of the primary directories where sysstat components are placed:
+
+1. User Executables (/usr/bin/)
+
+This is where the tools you run manually in the terminal are located:
+• /usr/bin/sar (System activity reporter)
+• /usr/bin/iostat (CPU and I/O statistics)
+• /usr/bin/mpstat (Multiprocessor statistics)
+• /usr/bin/pidstat (Process statistics)
+• /usr/bin/tapestat (Tape drive statistics)
+• /usr/bin/cifsiostat (CIFS I/O statistics)
+
+these are binary files which are actually executing and getting the report
+you can use commands like : sar iostat  mpstat  pidstat tapestat    cifsiostat
+
+
+2. Internal Collection Tools (/usr/lib64/sa/ or /usr/lib/sa/)
+
+The background engines that collect data are separated from the main user tools:
+• sa1: A binary that collects and stores binary data in the daily data file.
+• sa2: A shell script that writes a daily report.
+• sadc: The system activity data collector backend.
+
+3. Systemd Services and Timers (/usr/lib/systemd/system/)
+
+On modern RHEL versions (RHEL 8, 9, and 10), background collection is managed by systemd:
+• /usr/lib/systemd/system/sysstat.service (Initializes collection on boot)
+• /usr/lib/systemd/system/sysstat-collect.timer (Triggers data collection every 10 minutes)
+• /usr/lib/systemd/system/sysstat-summary.timer (Triggers daily summary generation)
+
+
