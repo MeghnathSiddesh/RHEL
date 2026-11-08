@@ -1,0 +1,54 @@
+file path_to_file_name
+
+it tells type of the file
+
+touch file1..10
+
+creates empty file
+
+touch {1..100}.txt
+
+creates 1.txt to 100.txt files
+
+---
+
+rm -i file.txt
+
+it removes file.txt after asking prompt
+
+by default when you enter rm file.txt ; it also ask prompt
+
+by default in system alias rm is set to ; rm = 'rm -i'
+i.e.. alias rm
+rm = 'rm -i'
+
+to remove this use : unalias rm
+
+---------------
+
+copy file 
+
+cp file1.txt file2.txt
+
+cp to different to folder
+
+cp file.txt /path_to_destination_file
+
+cp file.txt /tmp/file2.txt
+it will create new file in dest if file2.txt not exists
+
+cp -r ;copy a directory (folder) and all of its contents—including all files, subdirectories, and hidden files—from one location to another.
+
+cp -r /path_to_source_file_or_dir /path_to_destination_folder
+
+cp -r /tmp/ /home/ec2-user/
+
+it will copy whole tmp folder to ec2-user directory
+
+[root@ip-172-31-7-169 /]# cp -r /tmp/ /home/ec2-user/
+[root@ip-172-31-7-169 /]# cd /home/ec2-user/
+[root@ip-172-31-7-169 ec2-user]# ls
+at_test.txt  dir  file.txt  hard.txt  tmp
+[root@ip-172-31-7-169 ec2-user]#
+
+

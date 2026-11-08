@@ -1,0 +1,99 @@
+echo $(var=5; echo $var1)
+
+it will create subshell, to execute var=5; echo $var1 temporarily : shell embedding
+
+A=4
+echo $(echo $A)
+4
+
+subshell will inherit the variables of parent shell
+
+ echo $A$B$C $(B=20;echo $A$B$C;echo $(C=30; echo $A$B$C))
+10 1020 102030
+
+ls -d */
+# lists all directories in pwd
+
+ls -p | grep -v /
+
+ls -d *
+# will list all files and folders in pwd without listing any contents within subfolders
+ls -d #refers all fils and directoresi in pwd without contents of subfolder
+
+
+ echo `cd /etc; ls -d * | grep pass`
+
+#  backticks wil,=l create a new subshell fo execution of strings within it
+
+ [root@ip-172-31-7-169 /]# echo `var=5;echo $var`
+
+# so backticks are used to create subshell and execute commands or scripts within backticks in subshell
+
+----------------
+
+set
+
+set is a built-in shell command used to change or configure internal shell options and positional parameters.
+
+It allows you to modify the behavior of your current shell environment or script execution on the fly. When you turn a shell option "on" or "off", you change how Bash handles errors, variables, wildcards, and history.
+
+
+How to Toggle Options: The + and - Syntax
+
+The syntax for the set command can be highly confusing to beginners because it uses a minus sign to turn options ON, and a plus sign to turn options OFF:
+• set -o option_name (or set -letter): Turns an option ON (Enables it).
+• set +o option_name (or set +letter): Turns an option OFF (Disables it).
+
+
+The Most Common Shell Options Every Admin Uses
+
+These are the most critical settings used in production-grade Bash scripts to make them safer and easier to debug:
+
+1. Exit Immediately on Error (-e or errexit)
+
+By default, if a line in a Bash script fails, Bash will stubbornly ignore it and keep executing the next line.
+• Enable: set -e
+• Result: The script stops and exits immediately if any command returns a non-zero (error) status. This prevents a failed cd command from causing a subsequent rm -rf * to wipe out the wrong directory.
+
+2. Treat Unset Variables as an Error (-u or nounset)
+
+By default, if you reference a variable that hasn't been defined, Bash treats it as completely blank empty space.
+• Enable: set -u
+• Result: The script will crash with an "unbound variable" error if you try to use a variable you didn't define. This catches typing mistakes (e.g., typing $FILNAME instead of $FILENAME).
+
+3. Catch Errors in Pipelines (-o pipefail)
+
+Normally, if you run a pipeline like invalid_command | echo "Hello", the total command succeeds because the last command (echo) succeeded.
+• Enable: set -o pipefail
+• Result: The pipeline returns a failure status if any command inside the chain fails, not just the last one.
+
+4. Print Commands as They Run (-x or xtrace)
+
+This is the ultimate debugging tool for Linux scripts.
+• Enable: set -x
+• Result: Prints every single command to the screen exactly as it expands and runs, allowing you to trace exactly what your script is doing step-by-step.
+
+echo $-
+# this will tell which are set options enabled
+
+------------------------------
+
+history #this will show all the command that particular user have executed in this server
+history 10 #list last 10 commands
+history -c #to erase all the history
+
+HISTSIZE #variable tells how many commands history will store
+echo $HISTSIZE
+1000
+
+# you can increase this count,by increasing it in profile file(.bashrc)
+
+echo $HISTFILE
+/root/.bash_history #where history is stored
+
+--------
+
+init 0 #this will stop server
+
+-------
+

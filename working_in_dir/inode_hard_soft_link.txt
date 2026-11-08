@@ -1,0 +1,127 @@
+in linux files and directory names are case sensitive
+means you can have multiple files and dirs with same name but diff case
+
+touch file1.txt
+touch File1.txt
+
+inode : An inode (index node) is a data structure that stores all the metadata about a file or directory except for its name and the actual data content.
+ Think of it as a file's administrative ID card; 
+ the operating system relies on this numerical ID rather than the filename to locate and manage files.
+when you search for a files or directory, the OS will locate its inode values in hard disk and fetch its content
+
+
+What is Stored Inside an Inode?
+
+While it does not contain the actual text or code inside a file, an inode stores essential administrative information:
+• File Type: Whether it is a regular file, directory, symlink, or device.
+• File Size: The total size of the file in bytes.
+• Permissions: Read, write, and execute permissions (rwxrwxrwx).
+• Ownership: The User ID (UID) and Group ID (GID) of the file owner.
+• Timestamps: Dates and times for file creation, last modification (mtime), and last access (atime).
+• Link Count: The number of hard links pointing to this specific inode.
+• Data Block Pointers: The exact physical addresses or locations on the disk where the actual contents of the file are stored. (**Important**)
+
+When you open a file named document.txt, Linux looks up document.txt in the directory table, finds its inode number, grabs the file metadata(for permissions) and data block locations(exact physical addresses) from that inode, and then reads the actual data off the disk.
+
+
+ls -i	Displays the inode number next to the file or directory name.
+
+
+df -i	Displays the total, used, and free inode capacity for each mounted filesystem.
+
+to see inode of a file ; stat file_name
+
+
+How an Inode Works (Step-by-Step)
+
+When you request to read or write a file (for example, running cat project.txt), the Linux kernel executes a fast, multi-step translation process:
+[ Filename: project.txt ] 
+          │
+          ▼  (Step 1: Directory Lookup)
+[ Directory Table ] ───► Maps "project.txt" to Inode #12345
+          │
+          ▼  (Step 2: Metadata Retrieval)
+[ Inode #12345 ] ──────► Contains Permissions, Owner, and Data Block Pointers
+          │
+          ▼  (Step 3: Data Fetching)
+[ Disk Data Blocks ] ──► Reads the actual text/binary bytes from the physical disk
+
+
+1. The Directory Lookup
+
+The operating system goes to the directory where your file is located. It reads the directory's internal table to find the filename project.txt and fetches its assigned inode number (e.g., 12345).
+
+2. Reading the Inode Metadata
+
+The kernel looks up Inode #12345 in the filesystem's inode table. Before touching the actual data, it checks the metadata:
+• Do you have permission to read this file? If yes, it proceeds.
+• How big is the file? This tells the system how much data to expect.
+
+3. Following the Pointers to Disk Blocks
+
+Inside the inode, there is a list of pointers directing to the exact physical sectors on your SSD or HDD (called Data Blocks) where the file's raw bytes live. The system jumps to those blocks and streams the content back to your screen.
+
+
+
+link : 
+In Linux, a link is a pointer to a file or directory, allowing you to access the same content from different locations in the file system without making actual copies.
+
+1. Hard Links (Direct Clones)
+
+When you create a hard link for a file or dir, you are creating an additional name for the exact same data on the hard drive.
+
+How it works: In Linux, every file has an "Inode" (a unique ID number pointing to the physical data). A hard link shares the exact same Inode number as the original file.
+
+Behavior: 
+If you modify the original file, the hard link updates (because they point to the same data). 
+If you delete the original file, the data is not lost—it remains accessible through the hard link until all links to that Inode are deleted.
+
+(when you delete a file, you are just deleting the inode link of file(i.e.. in parent dir phone book), not the exact file in hard disk)
+(when you delete a file : (rm) stands for remove, which triggers the unlink system call. Linux separates a file's name from its actual data and metadata, by removing the entry in parents directory)
+
+Every inode tracks how many filenames (hard links) point to it. When you run rm filename, Linux removes the entry in the directory structure that maps that name to the inode number. The kernel then subtracts 1 from the inode's internal link count.
+
+Multiple hard links exist: If the inode has two filenames pointing to it (e.g., file1 and file2) and you delete file1, the inode's link count drops from 2 to 1. The inode and the underlying data remain completely untouched and accessible via file2
+
+if inode links = 0, means all the files it points is deleted then inode becomes free
+
+''''
+as mentioned earlier file to inode mapping is done inside its parent directory
+inode maps to physical_address, using inodes Data Block Pointers
+''''
+
+
+2. Soft Links / Symlinks (Shortcuts)
+
+A soft link operates exactly like a desktop shortcut in Windows or an Alias in macOS.
+
+• How it works: It is a distinct, lightweight file with its own unique Inode number. Instead of pointing to the raw data, its only job is to point to the text path of the original file.
+
+• Behavior: If you move or delete the original file, the soft link breaks because the path it points to no longer exists. However, unlike hard links, you can use soft links to point to directories and link to files stored on different hard drives or network shares.
+
+Why a Soft Link Breaks When the Original is Deleted
+
+Look at how the two files point to the hard drive:
+
+[ (soft link) soft.txt ] ──► (Has Inode 1182915) ──► Points to Disk Block containing the string: "normal.txt"
+                                                                      │
+                                                ┌─────────────────────┘
+                                                ▼
+[ (original file) normal.txt ] ─► (Has Inode 1118825) ──► Points to Disk Blocks containing: "Hello hi"
+
+lrwxrwxrwx. 1 root root 10 Nov  6 17:10 soft.txt -> normal.txt
+
+here if original file is deleted then soft link file will be deleted
+
+-----------------------------
+
+In Linux, filenames do not actually belong to files. 
+Instead, a directory is just a simple "phone book" or lookup table that maps human-readable names(file_name) to their inode numbers.
+so the inode information is available in files parent directory
+
+Hard Links: When you create a hard link, you are simply adding a new entry to that directory phone book, mapping a new name to the exact same inode number. The file data isn't duplicated; both names point to the same inode.
+
+Soft Links (Symlinks): A soft link is a completely new file with its own separate inode. The data blocks of this new file simply contain a text string pointing to the path of the original filename.
+
+-----------------------
+

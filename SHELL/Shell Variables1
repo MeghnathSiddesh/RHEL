@@ -1,0 +1,251 @@
+in linux, we see 3 types of variables
+
+1) system defined variables
+2) user defined variables
+
+system defined variables are defined in CAPITAL letters like
+HOSTNAME, PWD, SHELL, USER
+
+user defined variables are defined can be in CAPITAL or small letters
+
+variable name cannot start with numbers, special characters
+
+to fetch variable value use dollar($)
+
+$var1
+$SHELL
+
+all variables are temporary, until he logout from system, to make these variables permament you need to add the variable in
+.bashrc hidden file which is locate is user home directory
+
+cat ~/.barshrc
+
+~ user home directory
+
+to define variable with value, use variable=value
+not spaces around =
+
+var1="Cow"
+
+echo $var1
+Cow
+
+to see all the variables(system variables + user defined),use command : set
+to find out if particular variable is present use : set | grep "variable_name" && echo $?
+
+how to unset variables in linux
+if you set variables permanently in bashrc remove the variable from there
+
+if you defined it temporarily, then to unset it use : unset Var_name
+
+unset var1
+
+-------------
+
+The PS1 variable in Linux is an environment variable that defines the appearance and structure of your primary command prompt in the terminal.
+It stands for "Prompt String 1" and dictates what you see right before you type a command.
+
+echo $PS1
+[\u@\h \W]\$
+
+\u ->username
+@
+\h -> hostname
+\w ->pwd
+$ ->user is root user
+# ->user is normal user
+
+Temporary Change
+PS1="\u:\W \$ "
+
+Permanent Change
+nano ~/.bashrc
+PS1="[\t] \u@\h:\w\$ "
+
+source .bashrc
+
+PS1="touch me :"
+touch me! :
+
+if you want to modify how your prompt string looks, like its color, content, you can edit the PS1 variable
+
+-------
+PATH variable
+------------
+
+exported variables
+
+• Shell Variable (Local): If you define a variable like MY_VAR="hello", it only exists within your current, exact terminal window. If you run a Python script or a bash script from that terminal, the script will not be able to see or use MY_VAR.
+
+• Exported Variable (Global/Environment): If you use the export command (e.g., export MY_VAR="hello"), the variable enters the operating system's environment. 
+(Note: Inheritance is strictly top-down. A child process can inherit an exported variable from its parent, but a child process cannot export a variable back up to its parent shell.)
+
+Every program, command, or script you run from that terminal session will inherit it and be able to read its value.
+example: change the shell (bash -> zsh), change shell to subshell, until you are in that terminal session
+
+#subshell
+[ec2-user@ip-172-31-7-169 ~]$ var1=30
+[ec2-user@ip-172-31-7-169 ~]$ export var1
+[ec2-user@ip-172-31-7-169 ~]$ bash -c 'echo $var1'
+30
+
+#different shell
+[ec2-user@ip-172-31-7-169 ~]$ var1=30
+[ec2-user@ip-172-31-7-169 ~]$ bash -c 'echo $var1'
+30
+[ec2-user@ip-172-31-7-169 ~]$ zsh
+[ec2-user@ip-172-31-7-169]~% echo $var1
+3
+
+
+Making Exported Variables Permanent
+
+Variables exported in the command line are temporary and disappear the moment you close your terminal window. To make them persist permanently across restarts and new sessions(new terminal or new shell), you must add the export command to your shell's configuration files:
+
+• For your specific user account: Append the export statement to your user profile file, usually ~/.bashrc or ~/.bash_profile.
+
+echo 'export MY_PERMANENT_VAR="value"' >> ~/.bashrc
+source ~/.bashrc  # Reloads the file so it takes effect immediately
+
+1. Creating or Exporting a Variable
+# Method 1: Define and export all at once
+export API_KEY="12345_xyz"
+
+# Method 2: Define locally first, then export it
+USER_ROLE="admin"
+export USER_ROLE
+
+if you load exported varaibles to bashrc other shells like zsh can also use that, even when that terminal session is deleted
+
+
+2. Viewing Exported Variables
+export -p
+
+if you export variables, then if you change your shell(bash-->zsh) then those variables will be exported to that shell as well
+
+those can exported to subshell as well
+
+3. Un-exporting or Deleting a Variable
+export -n API_KEY
+
+If you want to erase the variable entirely from the current session, use unset:
+unset API_KEY
+
+[ec2-user@ip-172-31-7-169 ~]$ echo 'export SHELL="/bin/zsh"' >> ~/.bashrc
+[ec2-user@ip-172-31-7-169 ~]$ source ~/.bashrc
+[ec2-user@ip-172-31-7-169 ~]$ echo $SHELL
+/bin/zsh
+
+stil didnt understand what is difference between defining variables normally & using export command
+
+------------
+env
+
+In Linux, env is the collection of all exported variables that dictate how your operating system and programs behave.
+
+The env command serves two primary purposes: viewing your current environment variables and running a program inside a custom or modified environment without changing your system's global settings.
+
+
+1. Viewing the Current Environment Variables
+
+env
+
+
+2. Running Commands in a Temporary Environment
+
+env allows you to run a specific program with modified or entirely wiped variables for that single execution only. Once the program closes, your terminal environment reverts exactly to how it was.
+
+env LANG=fr_FR.UTF-8 date
+# This runs the 'date' command in French, but keeps your shell in English.
+
+
+--
+Clear the environment entirely: Run a script or program in a completely clean slate (no inherited variables) using the -i (ignore) flag and execute it in sub shell. This is excellent for debugging configuration issues.
+
+env -i command
+
+env -i bash
+it will create a sub shell which is bash shell, 
+where there is not env variables from .bashrc or user defined var from bashrc or export vars or variables which are defined in current shell
+
+normally when you commands or you execute commands with env, it will inherit the values of variables from current shell or from .bashrc
+
+using env -i will create a fresh executable environment, where it will not inherit any variables
+you can create your own variables in that script and execute it there
+
+env -i USER=custom_user bash -c 'echo $USER'
+
+[ec2-user@ip-172-31-7-169 ~]$ bash -c 'echo $SHELL $USER $HOME'
+/bin/zsh ec2-user /home/ec2-user
+[ec2-user@ip-172-31-7-169 ~]$ env -i bash -c 'echo $SHELL $USER $HOME'
+/bin/bash
+--
+----------------------------
+var1=30
+echo $var1
+#shell will first expand var1 variable to 30 and then it will execute the echo binary file
+
+syntax: bash /path_to_script.sh
+it will execute you script_file in seperate shell
+
+bash -c commands
+
+it will run the commands in seperate bash shell, instead of current bash session and once the execution completed it will terminate that session and outputs it to current session
+
+1. Combining it with sudo for Redirection (The most common use case)
+
+sudo echo "127.0.0.1 mysite.local" > /etc/hosts   # ERROR: Permission denied
+
+If you try to use sudo to write data to a system file using a redirect operator (>), it will fail.
+Why it fails: Only the echo command runs as root. The > redirection is handled by your current standard user shell, which doesn't have permission to write to /etc/hosts.
+
+The Fix: You use bash -c so that the entire string—both the echo and the writing to the file—happens inside a shell that has full root privileges:
+sudo bash -c "echo '127.0.0.1 mysite.local' > /etc/hosts"  # WORKS PERFECTLY
+
+The -c flag tells bash to execute the very next single string as a command.
+bash -c echo $var1
+
+it will not work as expected because, -c flag tells bash to execute the very next single string as a command. In this case, that string was just echo, 30 was treated as an extra positional argument passed
+so, bash ran echo with no arguments, printing a blank line.
+
+to make it execute correctly, pass the command as single string
+
+bash -c 'echo $VAR1'
+
+
+
+2. Running Linux Commands from Other Tools
+If you are writing programs in languages like Python, Node.js, or configuring tools like Docker, Kubernetes, or Cron jobs, they often require you to pass your command so that linux will detect that command inside DockerFile, python etc..
+
+In a Dockerfile:
+RUN bash -c "apt-get update && apt-get install -y curl"
+
+In a Python script:
+import os
+os.system('bash -c "cd /var/log && ls -la"')
+
+
+
+
+
+------------
+
+In Linux, a variable is delineated (isolated or wrapped) by surrounding its name with curly braces {} and a dollar sign $
+
+It tells the shell exactly where the variable name ends and where surrounding text begins. Without braces, the shell gets confused by attached characters.
+
+NAME="Linux"
+
+# ❌ WRONG (The shell looks for a variable named $NAMEisgreat)
+echo "$NAMEisgreat" 
+# Output: [Blank]
+
+#  RIGHT (The braces isolate the variable name)
+echo "${NAME}isgreat"
+# Output: Linuxisgreat
+
+• Use $VARIABLE for standalone variables.
+• Use ${VARIABLE} when you need to attach text, numbers, or underscores directly to the variable's value.
+
+----------------------
+

@@ -1,0 +1,91 @@
+cd ~ ; cd ;change to home directory
+
+cd - ;change to previous working directory
+
+~ -> represents home directory of user
+[root@ip-172-31-7-169 ~]# pwd
+/root
+
+pwd ;present working directory
+
+autocompletion in linux
+
+you can mention start chars of a dir or file or command, if multipl options are there linux will show options, if single option is there linux will autocomplete
+
+to auto complete or show options you need to press tab
+
+
+ls ;list files and directories
+ls -l ;list f&D along with their permissions, owner, size in bytes, creation and last modified date
+ls -lh ;h->humar readbale; list f&D like ls -l but makes size human readable like in kbs or MBs or GBs
+ls -alh 
+ls -d ; lists directy only
+ls /path
+
+ls -a /path
+list all(including hidden) in that path
+
+
+ls -a ;list hidden files
+
+. -> holds address of pwd
+.. -> holds address of parent directory
+all directories will have pwd and parent directory (.and ..)
+
+# .bash files are used to manage environmental vairables of that particular user and these .bash files are only available in users home directory
+
+---------
+
+create directory
+
+mkdir /path dir_name
+
+ex:
+mkdir dir1 ;creates dir1 in pwd
+mkdir /tmp/linux/unix ;created unix dir inside /tmp/linux
+
+to create nested directories use -p
+
+mkdir -p folder1/folder2/folder3
+
+it checks if folder1 present if not it created, next it creates folder2, next it creates folder3
+if folder1 present it checks for folder2 if it present it checks for folder3 if not present it creates folder3
+
+ex: mkdir -p /tmp/linux1/unix1/redhat1
+
+
+rmdir removes empty directory; means it should not have any directory or file in it
+
+rmdir path_to_dir_name
+
+rmdir /tmp/linux1/unix1/redhat1
+it removes redhat1 if it is empty
+
+rmdir /tmp/linux1
+it throws error because linux1 have unix1, so it is not happy
+
+rm to remove file
+
+rm path_to_file
+it will prompt to confirm
+ex: rm /tmp/linux1/unix1/cal.txt
+
+rm *
+removes all files inside pwd
+
+rm *.conf
+removes all .conf files in pwd
+
+rm -f /tmp/linux1/unix1/cal.txt
+it will not ask prompt to confirm
+
+rm -r path_to_dir ;will remove directory and all its contents
+rm -rd path_to_dir ;will remove directory and all its contents without prompt to confirm
+
+ex: rm -rf /tmp/linux1
+
+removes linux1 and all its files and directories
+
+-f can be used inside scripts which will run in background and not asks prompt
+
+----------------------

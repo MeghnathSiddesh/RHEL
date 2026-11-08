@@ -1,0 +1,55 @@
+1)semicolon (;)
+# to execute multiple commands in a single line, one after another, serially, independently
+use semicolon
+
+date; ls; echo "Hi";
+
+sleep 30; echo "Hello"
+#for 30s shell will not accept any input, post that it will print Hello
+
+zdate; ls; echo "Hi";
+# first command will not be executed because it is wrong; next commads will be executed
+
+2) ampersand(&)
+
+# here multiple commands can be executed parallell
+date & echo "Hi"
+
+# here both commands executed concurrently, first command will run in backgound and second will run in foreground and its output will be shown, next second commands output will mbe shown
+
+[root@ip-172-31-7-169 /]# sleep 5 & echo "Hello"
+[1] 2129
+Hello
+[root@ip-172-31-7-169 /]# echo "Meghanath"
+Meghanath
+[1]+  Done                    sleep 5
+
+3) ?
+? is a variable that stores the exit status of previous commands
+?=0 success
+?=1 failure
+
+echo $?
+
+3) logical AND(&&), Logical OR (||), Logical Not  (!)
+
+4) escape character(\)
+
+the character write after backslash(\), the characters literal meaning will be ignored by linux
+
+echo Hello ; world
+Hello
+bash: world!: command not found
+
+echo Hello \; world
+Hello world
+
+the backslash(\) will also be used to go to next line while typing commands, like
+
+[root@ip-172-31-7-169 /]# echo this command line is \
+> split into three lines \
+> line1 \
+> line2 \
+> line3
+# this command line is split into three lines line1 line2 line3
+

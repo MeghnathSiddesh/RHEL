@@ -1,0 +1,118 @@
+reading files
+
+to read file ; cat file.txt
+
+to read files starting 10 lines use ; head file.txt
+
+head -15 file.txt ;to read first 15 lines
+
+head -8 file.txt ;to read first 8 lines
+
+to read last 10line; tail file.txt
+
+to read last 15line ; tail -10 file.txt
+
+tac file.txt
+it will display contents in reverse order of lines
+
+to open contents of file line by line; use more
+
+more file.txt
+to come out user q
+
+less file.txt
+to come out user q
+
+both are same
+
+usually using cat commands we cannot read binary files, to read binary files use strings
+
+strings binary_file
+---------------------------------------
+
+to create file ; cat > file.txt
+it will allow to enter data to it
+
+if file.txt is already created then if you user : cat > file.txt; will remove old data and allows to add new data
+
+to append new data to existing file use; cat >> file.txt
+
+you can also create file using echo command
+
+echo > new.txt
+
+echo "Hi" > new1.txt ;creates new1.txt and add Hi
+
+echo "Hello" >> new1.txt ;appends new1.txt and add Hello
+
+-------------------
+shell expansion
+
+whatever command we write in shell, shell will scan that and understand it and manipulate and process it and pass it to kernel
+
+while scanning the line shell may make many changes to the arguments of command you type
+i.e.. shell may modify your command internally
+
+echo Hello Nehra            classess
+Hello Nehra classess #it is shell expansion
+
+echo "Hello Nehra          classess"
+Hello Nehra            classess #no shell expansion
+
+echo '$SHELL'
+SHELL
+
+echo "$SHELL"
+/bin/bash
+
+echo -e "Hello \n im good"
+
+
+\n -> new line
+-e -> use -e to use escape characters, if you dont then it will print as it is not value of escape characters
+
+
+shell built in commands : commands which are built inside shell and the program for that command is inside shell itsled
+/bi/bash
+
+external commands : commands which its utilty(program) is defined outside shell like /bin or /sbin
+
+how to findout : type command_name
+type cd
+cd is a shell builtin
+
+type ls
+ls is aliased to `ls --color=auto' #it is external
+
+to find where commands program is use: which command_name
+
+which ls
+/usr/bin/ls
+
+type lsblk
+lsblk is /usr/bin/lsblk
+
+
+------------
+
+alias
+
+to check how many alias are there use : alias
+
+alias dog=cat
+
+now you can execute cat program using dog command as well
+
+alias yestu=ls
+
+alias rm=rm -if #default rm value is set with alias
+alias ll=ls -l #default ll value is set to ls -l
+
+to remove this alias use : unalias command
+
+unalias yestu
+unalias rm
+
+this is lifetime of alias is till the current shell where the command is set to alias
+to make it permanent put it inside ~./bashrc file for that user
+
