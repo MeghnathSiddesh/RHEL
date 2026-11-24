@@ -1,0 +1,74 @@
+standard input, stdin signal and it is represented 0
+is a signal through shell accepts the input i.e.. commands
+
+stdout : signal which shell outputs the command 
+
+#stdin (0) stream 0, signal value 0
+#stdout (1) or stream1. signal value 1
+#stderror = standard error signal (2), signal value 2  ,like invalid commands
+
+echo "it is cold today!"  #signal 0
+# it is cold today  #signal 1
+
+
+echo "it is cold today!" > file.txt
+# the output will be redirected to file.txt
+# file.txt stores the signal 1 data
+
+#to store the error in the command in a file use 2>
+necho "Hello" 2> error.txt
+
+cat error.txt
+# bash: necho: command not found
+
+# 2> redirect only errors to file, if the command works success then it will not store the output of the commands
+# 2 is stderror signal
+
+echo "Hello" 2> error.txt
+# Hello
+
+cat error.txt  #it is empty
+
+# 1 is stdout signal, it will only rediects output of the command, not errors
+# by default you can also >, instaed 1>
+echo "Hello" 1> file.txt
+cat file.txt
+# Hello
+
+# > will redirect the output to file and it will erase old content and add new output
+# >> to append the new output use >> to redirect
+
+echo "Hi" >> file.txt
+
+-----
+
+noclobber is a shell option that prevents you from accidentally overwriting (clobbering) an existing file when using the > redirection operator.
+
+# bash: filename: cannot overwrite existing file.
+
+# Turn it ON
+set -o noclobber
+
+echo "New Data" > notes.txt
+# bash: notes.txt: cannot overwrite existing file
+
+# Turn it OFF
+set +o noclobber
+
+-----
+
+to redirect output or error to a file depending upon the situation, you use 2>&1
+
+echo "Hi" output.txt 2>&1
+cat output.txt
+# Hi
+
+eecho "Hi" output.txt 2>&1
+cat output.txt
+# bash: eecho: command not found
+
+# /dev/null is a special virtual device file known as the "null device" or "bit bucket" that instantly discards any data written to it.
+# Think of it as a digital black hole or a paper shredder. Anything you send into /dev/null disappears forever, and the system reports back that the write operation was successful. Additionally, if you try to read from /dev/null, it instantly returns an End-of-File (EOF) marker, meaning it acts as a completely empty file.
+
+
+

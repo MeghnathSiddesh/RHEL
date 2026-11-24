@@ -1,0 +1,30 @@
+ls File*
+#it will list all files starting with name File
+# it also lists the contents of all directories in pwd starting with File
+
+ls *File
+
+ls fil? #lists only those which are having only one character after fil, which fil1 fil2 file fil4
+ls file?? #lists only those which are having only two character after fil, which fil11 fil21 files fil4f
+
+ls file[a5]
+ls file[a5][!z]
+ls file[a5][!z]*
+
+ls file[a-z]
+ls file[0-9]
+
+ls file[a-z][a-z][0-9]*
+
+ls [A-Z]ile?
+filee Zile3
+
+echo * #lists all files in pwd
+
+echo \* #disables literal meaning of *
+*
+
+echo "*"
+*
+
+

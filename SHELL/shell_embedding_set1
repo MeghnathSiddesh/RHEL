@@ -82,14 +82,33 @@ history #this will show all the command that particular user have executed in th
 history 10 #list last 10 commands
 history -c #to erase all the history
 
+
+to delete particular entry in history
+
+history -d entry_no
+history -d 80
+
+history -d {50..60}
+
 HISTSIZE #variable tells how many commands history will store
 echo $HISTSIZE
 1000
+
+HISTSIZE=0
+it will disable history
+
+but all the history will be saved in .bash_history file,it just stops displaying history commands
 
 # you can increase this count,by increasing it in profile file(.bashrc)
 
 echo $HISTFILE
 /root/.bash_history #where history is stored
+
+HISTTIMEFORMAT="%d/%m/%y %T "
+
+set this to show, when the commands in history are executed
+
+to set this permanently in ./bashrc of user or in system profile file(/etc/.bashrc)
 
 --------
 
